@@ -1,0 +1,4 @@
+- Purpose: Hackathon MVP for a Regulatory Response Copilot that helps SPA teams interpret regulatory questions, retrieve grounded prior evidence, and draft a traceable response plan.
+- Stack: Next.js App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui-style component setup, Zod, OpenAI SDK, Vitest, ESLint.
+- Architecture: App Router UI in `app/`, reusable UI in `components/`, server-side copilot and LLM logic in `lib/server/`, sample/data assets in `data/`, docs and plans in `docs/`, tests in `tests/`.
+- Product constraints from `AGENTS.md`: keep LLM calls server-side, ground outputs in repo evidence, prefer typed contracts and deterministic parsing, preserve App Router structure, and surface uncertainty instead of guessing.

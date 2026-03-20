@@ -1,0 +1,5 @@
+- Use TypeScript with explicit typed contracts and Zod validation for server-side boundaries.
+- Preserve existing App Router structure and keep imports at the top of files.
+- Favor deterministic parsing and metadata-first retrieval over free-form chat behavior.
+- Keep implementation hackathon-small and grounded in repo evidence.
+- Existing code style uses concise functions, camelCase identifiers, `const` by default, double quotes, and minimal inline comments.

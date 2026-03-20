@@ -1,0 +1,528 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #10283b;
+  --card: #ffffff;
+  --card-foreground: #10283b;
+  --popover: #ffffff;
+  --popover-foreground: #10283b;
+  --primary: #0a7ccf;
+  --primary-foreground: #f7fbff;
+  --secondary: #e7f0f8;
+  --secondary-foreground: #10283b;
+  --muted: #f4f7fb;
+  --muted-foreground: #5d7183;
+  --accent: #dceaf6;
+  --accent-foreground: #10283b;
+  --destructive: #b54848;
+  --destructive-foreground: #fef8f8;
+  --border: #d7e2ec;
+  --input: #cdd8e3;
+  --ring: #0a7ccf;
+  --radius: 0.625rem;
+  --shadow-panel: 0 1px 3px rgba(16, 40, 59, 0.06), 0 4px 16px -6px rgba(16, 40, 59, 0.08);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #10283b;
+  --sidebar-primary: #0a7ccf;
+  --sidebar-primary-foreground: #f7fbff;
+  --sidebar-accent: #e7f0f8;
+  --sidebar-accent-foreground: #10283b;
+  --sidebar-border: #d7e2ec;
+  --sidebar-ring: #0a7ccf;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 0.125rem);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 0.125rem);
+  --radius-xl: calc(var(--radius) + 0.375rem);
+  --font-sans: var(--font-app-body);
+  --font-heading: var(--font-app-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  /* ── Global header ─────────────────────────── */
+  .app-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    padding: 0.875rem clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  /* ── Intake shell ──────────────────────────── */
+  .intake-shell {
+    padding: clamp(1.5rem, 2vw, 2rem);
+  }
+
+  /* ── Interpretation strip ────────────────────── */
+  .interpretation-strip {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    padding: clamp(1.25rem, 1.8vw, 1.75rem);
+    box-shadow: var(--shadow-panel);
+  }
+
+  /* ── Results tabs ────────────────────────────── */
+  .results-tab-list {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    border-radius: var(--radius-lg);
+    background: var(--muted);
+    padding: 0.25rem;
+    height: auto;
+  }
+
+  .results-tab-trigger {
+    flex: 0 0 auto;
+    padding: 0.625rem 1.25rem;
+    font-family: var(--font-app-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all 0.15s ease;
+  }
+
+  .results-tab-trigger[data-state="active"] {
+    background: var(--card);
+    color: var(--foreground);
+    box-shadow: var(--shadow-panel);
+  }
+
+  .results-tab-content {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    padding: clamp(1.25rem, 2vw, 2rem);
+    box-shadow: var(--shadow-panel);
+    animation: content-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* ── Evidence row ────────────────────────────── */
+  .evidence-row {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s ease;
+  }
+
+  .evidence-row:last-of-type {
+    border-bottom: none;
+  }
+
+  .evidence-row:hover {
+    background: var(--muted);
+  }
+
+  .evidence-rank {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 2rem;
+    padding-top: 0.125rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Metadata label ────────────────────────── */
+  .meta-label {
+    font-family: var(--font-app-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* ── Trust strip item ──────────────────────── */
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-app-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    color: var(--muted-foreground);
+  }
+
+  .trust-item::before {
+    content: "";
+    display: block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+  }
+
+  /* ── Hero trust item (white on shader bg) ───── */
+  .hero-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-app-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .hero-trust-item::before {
+    content: "";
+    display: block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: #89D329;
+    flex-shrink: 0;
+  }
+
+  /* ── Skeleton loading ────────────────────────── */
+  .skeleton-block {
+    position: relative;
+    overflow: hidden;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+
+  .skeleton-block::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--card) 50%, transparent) 40%,
+      color-mix(in srgb, var(--card) 50%, transparent) 60%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Staggered skeleton children */
+  .skeleton-stagger > :nth-child(1) { animation-delay: 0ms; }
+  .skeleton-stagger > :nth-child(2) { animation-delay: 80ms; }
+  .skeleton-stagger > :nth-child(3) { animation-delay: 160ms; }
+  .skeleton-stagger > :nth-child(4) { animation-delay: 240ms; }
+  .skeleton-stagger > :nth-child(5) { animation-delay: 320ms; }
+  .skeleton-stagger > :nth-child(6) { animation-delay: 400ms; }
+
+  .skeleton-stagger > * {
+    opacity: 0;
+    animation: skeleton-stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+               skeleton-pulse 2s ease-in-out infinite 0.4s;
+  }
+
+  @keyframes skeleton-stagger-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── Content entrance animations ───────────── */
+  .animate-in {
+    animation: content-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes content-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Staggered content entrance for list items */
+  .stagger-children > :nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > :nth-child(2) { animation-delay: 60ms; }
+  .stagger-children > :nth-child(3) { animation-delay: 120ms; }
+  .stagger-children > :nth-child(4) { animation-delay: 180ms; }
+  .stagger-children > :nth-child(5) { animation-delay: 240ms; }
+  .stagger-children > :nth-child(6) { animation-delay: 300ms; }
+  .stagger-children > :nth-child(n+7) { animation-delay: 350ms; }
+
+  .stagger-children > * {
+    animation: content-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* ── Pipeline progress bar ─────────────────── */
+  .pipeline-progress {
+    position: relative;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .pipeline-progress::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--primary);
+    border-radius: 1px;
+    transform-origin: left;
+    animation: pipeline-sweep 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes pipeline-sweep {
+    0% { transform: scaleX(0) translateX(0); }
+    40% { transform: scaleX(0.5) translateX(30%); }
+    100% { transform: scaleX(0) translateX(200%); }
+  }
+
+  /* ── Chip pop-in ───────────────────────────── */
+  .chip-animate {
+    animation: chip-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes chip-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* ── Shader button shimmer ─────────────────── */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ── Reduced motion ────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-block,
+    .skeleton-block::after,
+    .skeleton-stagger > *,
+    .animate-in,
+    .stagger-children > *,
+    .pipeline-progress::after,
+    .chip-animate,
+    .results-tab-content {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .skeleton-block {
+      opacity: 0.7 !important;
+    }
+  }
+
+  /* ── Focus ring ────────────────────────────── */
+  .focus-ring:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--primary) 75%, white);
+    outline-offset: 2px;
+    border-radius: inherit;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ── Shimmer button animations ────────────── */
+  .animate-shimmer-slide {
+    animation: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  }
+
+  .animate-spin-around {
+    animation: spin-around calc(var(--speed) * 2) infinite linear;
+  }
+
+  @keyframes shimmer-slide {
+    to { transform: translate(calc(100cqw - 100%), 0); }
+  }
+
+  @keyframes spin-around {
+    0% { transform: translateZ(0) rotate(0); }
+    15%, 35% { transform: translateZ(0) rotate(90deg); }
+    65%, 85% { transform: translateZ(0) rotate(270deg); }
+    100% { transform: translateZ(0) rotate(360deg); }
+  }
+
+  /* ── Shiny text animation ────────────────── */
+  .shiny-text {
+    background-image: linear-gradient(
+      120deg,
+      #b5b5b5 0%,
+      #b5b5b5 35%,
+      #000000 50%,
+      #b5b5b5 65%,
+      #b5b5b5 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shiny-text-sweep 2s linear infinite;
+  }
+
+  @keyframes shiny-text-sweep {
+    0% { background-position: 150% center; }
+    100% { background-position: -50% center; }
+  }
+
+  /* ── Workbench sidebar layout ────────────── */
+  /* Override shadcn sidebar from fixed to sticky so it stays within
+     the workbench section and doesn't overlap the hero/explainer above.
+     Also explicitly handle widths since Tailwind v4 arbitrary var syntax
+     may not compile the shadcn classes correctly. */
+  .workbench-layout {
+    min-height: auto;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-side="left"] > div:nth-child(1) {
+    width: var(--sidebar-width);
+    transition: width 200ms linear;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-side="left"] > div:nth-child(2) {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    transition: width 200ms linear;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] > div:nth-child(1) {
+    width: var(--sidebar-width-icon);
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] > div:nth-child(2) {
+    width: var(--sidebar-width-icon);
+  }
+
+  /* Hide all content except icons when sidebar is collapsed.
+     Replicates shadcn group-data-[collapsible=icon]:* variants
+     which don't compile in Tailwind v4. */
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="sidebar"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="content"] {
+    overflow: hidden;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="group-label"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="group-action"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="group-content"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="footer"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="separator"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="menu-action"],
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="menu-badge"] {
+    display: none;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="header"] {
+    overflow: hidden;
+    padding: 0.5rem;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="header"] span {
+    display: none;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="group"] {
+    overflow: hidden;
+  }
+
+  .workbench-layout [data-variant="sidebar"][data-state="collapsed"][data-collapsible="icon"] [data-sidebar="menu-button"] {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.5rem;
+    overflow: hidden;
+  }
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}

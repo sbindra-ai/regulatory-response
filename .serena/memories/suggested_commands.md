@@ -1,0 +1,9 @@
+- `npm run dev` - start the Next.js dev server.
+- `npm run build` - build the production app.
+- `npm run start` - run the built app.
+- `npm run lint` - run ESLint.
+- `npm run test` - run Vitest once.
+- `npm run test:watch` - run Vitest in watch mode.
+- `npm run ingest` - build the knowledge base corpus.
+- `git status`, `git diff`, `git log --oneline --decorate -5` - useful git inspection commands on Darwin.
+- Standard shell utilities available on Darwin include `ls`, `pwd`, `grep`/`rg`, `sed`, and `open`.
