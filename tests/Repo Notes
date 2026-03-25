@@ -1,0 +1,212 @@
+Week 1 Goal
+By the end of this week, you should be able to:
+•	start the app locally
+•	recognize the main folders
+•	find where text and layout live
+•	make 2-3 safe UI changes by yourself
+•	know which files not to touch yet
+________________________________________
+Day 1 — Get comfortable with the repo structure
+Step 1: Open the repo and just look
+In Antigravity or VS Code, open the project folder.
+At the top level, you should see folders like:
+•	app
+•	components
+•	lib
+•	data
+•	docs
+•	scripts
+•	tests
+Step 2: Create your own cheat sheet
+Open Notepad or Word and make a file called:
+repo-notes.docx or repo-notes.txt
+Write this:
+•	app/ = main pages and routes
+•	components/ = reusable UI pieces
+•	lib/ = logic and helper code
+•	data/ = generated knowledge base
+•	docs/ = source documents
+•	scripts/ = helper scripts like ingest
+•	tests/ = automated checks
+This sounds basic, but it helps a lot.
+Step 3: Dont edit anything yet
+Just click through folders and look.
+Your mission today is:
+“I know where things live.”
+________________________________________
+Day 2 — Run the app and understand the flow
+Step 1: Start the app
+Open terminal in the repo folder and run:
+npm install
+npm run ingest
+npm run dev
+Then open:
+http://localhost:3000
+Step 2: Use the app once
+Paste a sample regulatory question into the tool.
+Watch carefully:
+•	where do you type?
+•	what button do you press?
+•	what appears after?
+•	what sections show up?
+Write down the app flow in simple English, like:
+1.	user pastes question
+2.	clicks analyze
+3.	app interprets request
+4.	app shows results
+5.	app generates plan
+Step 3: Take screenshots
+Take 2-3 screenshots of the running app.
+This gives you a “before” view in case you later change layout.
+________________________________________
+Day 3 — Understand the UI structure
+Today you will learn the difference between page and component.
+Step 1: Open app/page.tsx
+This is usually the main page.
+You are not trying to understand every line.
+Just scan for:
+•	big section names
+•	titles
+•	imports from components
+•	buttons or cards
+Step 2: Open components/
+Look for files that sound visual, like:
+•	card
+•	button
+•	result panel
+•	form
+•	input
+•	output
+Step 3: Learn this simple rule
+If you want to change:
+•	wording
+•	spacing
+•	order of sections
+•	labels
+•	page layout
+You usually start in:
+•	app/page.tsx
+•	components/
+If you want to change:
+•	AI behavior
+•	extraction logic
+•	retrieval
+•	prompts
+You usually start in:
+•	lib/server/...
+Step 4: Write this in your notes
+Frontend = what users see
+Backend = how the app thinks
+That distinction is one of the biggest unlocks.
+________________________________________
+Day 4 — Make your first safe change
+Today we make a tiny UI change only.
+Safe Change Option A: Change a heading
+Find a visible heading in app/page.tsx or a component and change it.
+Example:
+•	from Analyze Request
+•	to Analyze Regulatory Request
+Save the file and refresh browser.
+If it changes on screen, great. You just made your first edit.
+Safe Change Option B: Change helper text
+Example:
+•	“Paste request here”
+•	to
+•	“Paste FDA or Health Authority request here”
+Safe Change Option C: Change button label
+Example:
+•	“Generate”
+•	to
+•	“Generate Response Plan”
+Important
+Only do one change at a time.
+After each change:
+•	save
+•	refresh browser
+•	confirm what changed
+If it breaks, undo immediately.
+________________________________________
+Day 5 — Make a second safe change: layout only
+Today you will change something visual, not logical.
+Try one of these:
+•	move a section higher or lower in app/page.tsx
+•	adjust spacing between cards
+•	change the order of two visible panels
+•	add one short info box
+Example
+If the “Response Plan” appears below another section, try moving its component call above the other one.
+Even if it looks small, this teaches you how the page is assembled.
+________________________________________
+Day 6 — Learn where the knowledge comes from
+Today we touch data understanding, not AI logic.
+Step 1: Open docs/
+Look at what source files are stored there.
+These are the documents the prototype uses as its “mini library.”
+Step 2: Open data/copilot/evidence-corpus.json
+Dont edit it. Just inspect it.
+You are trying to understand:
+•	what kind of text is stored
+•	how chunks are organized
+•	whether source names are included
+Step 3: Open scripts/build-knowledge-base.ts
+Again, dont edit yet.
+Just look for:
+•	reading docs
+•	parsing files
+•	writing output JSON
+Key learning for today
+The AI is not magically knowing your documents.
+Someone turned the docs into a searchable corpus.
+That “someone” is the script.
+________________________________________
+Day 7 — Review and lock in understanding
+Today you do not build anything new.
+You review what you learned.
+Write answers to these 7 questions in your notes
+1.	What file most likely controls the main page?
+2.	Where are reusable UI parts stored?
+3.	Where does backend / AI logic live?
+4.	Where do source documents live?
+5.	What creates the knowledge corpus?
+6.	What kind of changes are safe for me right now?
+7.	Which files should I not touch yet?
+If you can answer those, Week 1 is successful.
+________________________________________
+Safe files to touch in Week 1
+You can safely explore and lightly edit:
+•	app/page.tsx
+•	components/...
+•	globals.css or basic styling files
+•	text labels
+•	section order
+________________________________________
+Dont touch yet in Week 1
+Avoid editing these until you are more comfortable:
+•	lib/server/llm/...
+•	lib/server/copilot/...
+•	token/auth files
+•	API route logic
+•	retrieval ranking logic
+These are not impossible, just too early.
+________________________________________
+Your first 3 beginner changes I recommend
+Do these in this order:
+Change 1
+Rename one visible heading
+Change 2
+Rename one button or helper text
+Change 3
+Move one section above another in the page
+If you do those 3 changes successfully, your confidence will go up a lot.
+________________________________________
+What to do if something breaks
+Dont panic.
+Use this order:
+1.	undo your last change
+2.	save file
+3.	refresh browser
+4.	if still broken, restart dev server
+If needed:
+npm run dev
+again.
+
