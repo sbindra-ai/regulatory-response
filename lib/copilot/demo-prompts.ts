@@ -1,5 +1,4 @@
 export type DemoPromptFamily =
-  | "ae-syncope"
   | "ae-summary"
   | "soc-pt"
   | "aesi"
@@ -15,13 +14,6 @@ export type DemoPrompt = {
 }
 
 export const demoPrompts: DemoPrompt[] = [
-  {
-    id: "ae-syncope-ia",
-    family: "ae-syncope",
-    label: "AE incidence with syncope",
-    question:
-      "Provide the number of subjects who experienced syncope in the four phase 2/3 clinical trials (SWITCH-1, and OASIS 1, 2 and 3) and provide the case narrative for each.",
-  },
   {
     id: "ae-overall-week12",
     family: "ae-summary",

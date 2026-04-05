@@ -35,7 +35,7 @@ describe("generateStructuredObject", () => {
         baseUrlHost: "chat.int.bayer.com",
         event: "mga.request.skipped",
         hasToken: false,
-        maxTokens: 64000,
+        maxTokens: 100000,
         model: "gpt-5",
         systemPromptLength: 17,
         userPromptLength: 20,
@@ -95,7 +95,7 @@ describe("generateStructuredObject", () => {
     })
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        max_tokens: 64000,
+        max_tokens: 100000,
         model: "gpt-5",
         response_format: {
           type: "json_object",
@@ -106,7 +106,7 @@ describe("generateStructuredObject", () => {
     expect(info).toHaveBeenCalledWith(
       expect.objectContaining({
         event: "mga.request.started",
-        maxTokens: 64000,
+        maxTokens: 100000,
         model: "gpt-5",
         runId: "run-123",
         stage: "interpret-request",

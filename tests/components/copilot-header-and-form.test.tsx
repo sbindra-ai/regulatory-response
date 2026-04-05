@@ -73,14 +73,14 @@ describe("question form", () => {
   it("renders the scope-boundary copy", () => {
     render(<QuestionForm {...defaultProps} />)
     expect(
-      screen.getByText(/Pick one to get started quickly with a supported evidence family./),
+      screen.getByText(/produces a traceable starter plan - not final authority-facing text/),
     ).toBeInTheDocument()
   })
 
   it("renders the textarea and submit button", () => {
     render(<QuestionForm {...defaultProps} />)
     expect(screen.getByRole("textbox")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Run Copilot/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Run Copilot" })).toBeInTheDocument()
   })
 
   it("renders all 6 demo prompt chips", () => {

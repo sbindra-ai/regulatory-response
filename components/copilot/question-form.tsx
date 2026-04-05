@@ -65,15 +65,17 @@ function RunButton({
           onInterrupt()
         }
       }}
-      className={`focus-ring group relative isolate h-13 w-[12rem] cursor-pointer overflow-hidden whitespace-nowrap rounded-xl px-9 text-base font-bold text-white transition-all duration-500 ease-in-out active:translate-y-[0.5px] focus-visible:outline-2 focus-visible:outline-offset-2 ${pending
+      className={`focus-ring group relative isolate h-13 w-[12rem] cursor-pointer overflow-hidden whitespace-nowrap rounded-xl px-9 text-base font-bold text-white transition-all duration-500 ease-in-out active:translate-y-[0.5px] focus-visible:outline-2 focus-visible:outline-offset-2 ${
+        pending
           ? "bg-[#b54848] shadow-[0_2px_8px_rgba(181,72,72,0.3)] hover:bg-[#a03e3e] focus-visible:outline-[#b54848]"
           : "bg-[#10384F] shadow-[0_2px_8px_rgba(16,56,79,0.3)] hover:shadow-[0_4px_16px_rgba(16,56,79,0.35)] hover:translate-y-[-1px] focus-visible:outline-[#00BCFF]"
-        }`}
+      }`}
     >
       {/* Shimmer layer - fades out when pending */}
       <div
-        className={`absolute inset-0 overflow-visible -z-30 blur-[2px] [container-type:size] transition-opacity duration-500 ${pending ? "opacity-0" : "opacity-100"
-          }`}
+        className={`absolute inset-0 overflow-visible -z-30 blur-[2px] [container-type:size] transition-opacity duration-500 ${
+          pending ? "opacity-0" : "opacity-100"
+        }`}
       >
         <div className="animate-shimmer-slide absolute inset-0 h-[100cqh] [aspect-ratio:1] [border-radius:0] [mask:none]">
           <div className="animate-spin-around absolute -inset-full w-auto rotate-0 [background:conic-gradient(from_calc(270deg-(90deg*0.5)),transparent_0,#00BCFF_90deg,transparent_90deg)] [translate:0_0]" />
@@ -82,23 +84,26 @@ function RunButton({
 
       {/* Inner glow - fades out when pending */}
       <div
-        className={`pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_-8px_10px_#ffffff1f] transition-opacity duration-500 ${pending ? "opacity-0" : "opacity-100"
-          }`}
+        className={`pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_-8px_10px_#ffffff1f] transition-opacity duration-500 ${
+          pending ? "opacity-0" : "opacity-100"
+        }`}
       />
 
       {/* Background fill for shimmer cut */}
       <div
-        className={`pointer-events-none absolute -z-20 rounded-[0.75rem] [inset:0.05em] transition-colors duration-500 ${pending ? "bg-[#b54848]" : "bg-[#10384F]"
-          }`}
+        className={`pointer-events-none absolute -z-20 rounded-[0.75rem] [inset:0.05em] transition-colors duration-500 ${
+          pending ? "bg-[#b54848]" : "bg-[#10384F]"
+        }`}
       />
 
       {/* Content crossfade */}
       <span className="relative flex items-center justify-center">
         <span
-          className={`flex items-center gap-2 transition-all duration-300 ${pending
+          className={`flex items-center gap-2 transition-all duration-300 ${
+            pending
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-2 absolute"
-            }`}
+          }`}
         >
           <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
             <rect x="3" y="3" width="10" height="10" rx="1.5" />
@@ -106,10 +111,11 @@ function RunButton({
           Stop Copilot
         </span>
         <span
-          className={`transition-all duration-300 ${pending
+          className={`transition-all duration-300 ${
+            pending
               ? "opacity-0 -translate-y-2 absolute"
               : "opacity-100 translate-y-0"
-            }`}
+          }`}
         >
           Run Copilot
         </span>
@@ -330,10 +336,11 @@ export function QuestionForm({
               onChange={(event) => setQuestion(event.target.value)}
               onPaste={handlePaste}
               placeholder="Type or paste questions here - you can also paste a screenshot, or drag & drop a PDF / image…"
-              className={`focus-ring min-h-48 w-full resize-y rounded-xl border bg-white px-5 py-4 text-[0.9375rem] leading-relaxed text-foreground shadow-[0_1px_3px_rgba(16,56,79,0.04),0_4px_16px_-6px_rgba(16,56,79,0.06)] outline-none transition-all placeholder:text-muted-foreground/50 focus:border-[#00BCFF]/50 focus:shadow-[0_0_0_3px_rgba(0,188,255,0.08),0_1px_3px_rgba(16,56,79,0.04)] ${dragOver
+              className={`focus-ring min-h-48 w-full resize-y rounded-xl border bg-white px-5 py-4 text-[0.9375rem] leading-relaxed text-foreground shadow-[0_1px_3px_rgba(16,56,79,0.04),0_4px_16px_-6px_rgba(16,56,79,0.06)] outline-none transition-all placeholder:text-muted-foreground/50 focus:border-[#00BCFF]/50 focus:shadow-[0_0_0_3px_rgba(0,188,255,0.08),0_1px_3px_rgba(16,56,79,0.04)] ${
+                dragOver
                   ? "border-[#00BCFF] bg-[#00BCFF]/[0.03] shadow-[0_0_0_3px_rgba(0,188,255,0.12)]"
                   : "border-border/70"
-                }`}
+              }`}
             />
 
             {/* Drag overlay */}

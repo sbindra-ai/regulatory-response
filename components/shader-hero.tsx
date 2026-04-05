@@ -46,11 +46,11 @@ export function ShaderHero() {
           <h1 className="font-heading text-balance text-[clamp(2rem,4vw,3.25rem)] font-bold leading-[1.08] tracking-tight text-white">
             AI-Powered Regulatory
             <br />
-            Response Accelerator for SPA
+            Response Accelerator
           </h1>
           <p className="mt-4 max-w-2xl text-[clamp(0.9375rem,1.2vw,1.125rem)] leading-relaxed text-white/80">
             Paste a regulatory question below. The tool interprets the ask, retrieves matching
-            repository evidence, and produces a traceable starter plan.
+            repo evidence, and produces a traceable starter plan.
           </p>
         </div>
       </div>
