@@ -108,6 +108,7 @@ describe("copilotResultSchema", () => {
         recommendedDatasets: ["ADLB", "ADAE", "ADCM"],
         candidateOutputs: ["Subject-level liver plot", "Derived CLO narrative-support dataset"],
         deliverables: ["Internal response plan", "Evidence-backed next steps"],
+        responsibilities: ["Lead programmer", "Statistician"],
         citations: ["program:f_10_2_8_2_adlb_over"],
       },
       assumptions: [

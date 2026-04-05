@@ -68,6 +68,7 @@ function createResponsePlan() {
     recommendedDatasets: ["ADAE", "ADSL"],
     candidateOutputs: ["AE overall summary table"],
     deliverables: ["Internal response plan", "Draft table review"],
+    responsibilities: ["Lead programmer", "Statistician"],
     citations: ["program:t_adae_iss_overall_week12"],
   }
 }

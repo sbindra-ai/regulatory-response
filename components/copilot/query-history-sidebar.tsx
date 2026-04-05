@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { History, Layers, Search, Trash2, X } from "lucide-react"
 
 import {
@@ -95,9 +96,7 @@ function HistoryItem({
             {truncated}
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-[0.625rem] tabular-nums text-sidebar-foreground/40">
-              {formatRelativeTime(entry.timestamp)}
-            </span>
+            <RelativeTime timestamp={entry.timestamp} />
             <ConfidenceIndicator level={entry.confidenceLevel} />
             {entry.evidenceCount > 0 && (
               <span className="inline-flex items-center gap-0.5 text-[0.5625rem] tabular-nums text-sidebar-foreground/40">
@@ -126,6 +125,31 @@ function HistoryItem({
         <X className="size-3.5" />
       </SidebarMenuAction>
     </SidebarMenuItem>
+  )
+}
+
+function RelativeTime({ timestamp }: { timestamp: number }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <span className="text-[0.625rem] tabular-nums text-sidebar-foreground/40">
+        {new Date(timestamp).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })}
+      </span>
+    )
+  }
+
+  return (
+    <span className="text-[0.625rem] tabular-nums text-sidebar-foreground/40">
+      {formatRelativeTime(timestamp)}
+    </span>
   )
 }
 

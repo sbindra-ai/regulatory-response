@@ -47,6 +47,7 @@ describe("runCopilot", () => {
             recommendedDatasets: ["ADLB", "ADAE", "ADCM"],
             candidateOutputs: ["Subject-level ADLB figure", "Close liver observation support package"],
             deliverables: ["Internal response plan", "Draft figure review"],
+            responsibilities: ["Lead programmer", "Statistician"],
             citations: ["program:f_10_2_8_2_adlb_over", "program:d_adlb_dili_tab"],
           },
           usage: { promptTokens: 800, completionTokens: 400, totalTokens: 1200 },
