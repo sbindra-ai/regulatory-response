@@ -133,6 +133,7 @@ describe("copilotResultSchema", () => {
         method: "hybrid",
         documentCount: 1,
         topSimilarity: 0.85,
+        evidencePool: "repository",
       },
       tokenUsage: {
         promptTokens: 1500,

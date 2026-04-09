@@ -1,5 +1,7 @@
 import { exec } from "node:child_process"
 
+import { clearKnowledgeBaseCache } from "@/lib/server/copilot/knowledge-base"
+
 export async function POST(): Promise<Response> {
   try {
     const result = await new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
@@ -15,6 +17,8 @@ export async function POST(): Promise<Response> {
         },
       )
     })
+
+    clearKnowledgeBaseCache()
 
     const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim()
     const embeddingMatch = output.match(/With embeddings: (\d+)/)

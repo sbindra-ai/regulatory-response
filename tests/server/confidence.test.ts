@@ -119,7 +119,13 @@ describe("computeConfidenceScore", () => {
 
   it("caps keyword-only relevance at 80", () => {
     const result = computeConfidenceScore({
-      evidence: [makeEvidenceHit({ vectorSimilarity: null })],
+      evidence: [
+        makeEvidenceHit({
+          vectorSimilarity: null,
+          score: 0,
+          keywordScore: 100,
+        }),
+      ],
       interpretation: makeInterpretation(),
       retrievalMethod: "keyword-only",
     })

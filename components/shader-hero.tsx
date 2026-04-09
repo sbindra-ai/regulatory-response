@@ -3,6 +3,8 @@
 import Image from "next/image"
 import { MeshGradient } from "@paper-design/shaders-react"
 
+import { PRODUCT_DISPLAY_NAME } from "@/lib/copilot/product-meta"
+
 export function ShaderHero() {
   return (
     <section className="relative isolate overflow-hidden">
@@ -33,8 +35,8 @@ export function ShaderHero() {
               className="shrink-0"
             />
           </div>
-          <p className="font-heading text-[0.9375rem] font-bold leading-tight text-white">
-            Regulatory-Response Copilot
+          <p className="max-w-[min(100%,22rem)] font-heading text-[0.8125rem] font-bold leading-snug text-white sm:max-w-none sm:text-[0.9375rem] sm:leading-tight">
+            {PRODUCT_DISPLAY_NAME}
           </p>
         </div>
 
@@ -43,10 +45,8 @@ export function ShaderHero() {
       {/* Hero content */}
       <div className="px-[clamp(1.25rem,3vw,2.5rem)] pb-14 pt-10 sm:pb-16 sm:pt-14">
         <div className="mx-auto max-w-[86rem]">
-          <h1 className="font-heading text-balance text-[clamp(2rem,4vw,3.25rem)] font-bold leading-[1.08] tracking-tight text-white">
-            AI-Powered Regulatory
-            <br />
-            Response Accelerator
+          <h1 className="font-heading text-balance text-[clamp(1.75rem,3.6vw,3rem)] font-bold leading-[1.1] tracking-tight text-white">
+            {PRODUCT_DISPLAY_NAME}
           </h1>
           <p className="mt-4 max-w-2xl text-[clamp(0.9375rem,1.2vw,1.125rem)] leading-relaxed text-white/80">
             Paste a regulatory question below. The tool interprets the ask, retrieves matching

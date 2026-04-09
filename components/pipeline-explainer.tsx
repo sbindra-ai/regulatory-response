@@ -16,7 +16,7 @@ const steps = [
   {
     title: "Retrieve evidence",
     description:
-      "The knowledge base - SAS programs, ADaM datasets, SAP sections, TLF specs - is searched using hybrid keyword + vector retrieval to surface matching prior work.",
+      "The active index (repository demo assets or an optional Samba-share corpus) is searched with hybrid or vector-first ranking: MiniSearch keywords plus cosine similarity when embeddings are present.",
   },
   {
     title: "Generate plan",
@@ -37,7 +37,7 @@ const techDetails = [
   {
     label: "Retrieval",
     value:
-      "Hybrid search combining MiniSearch full-text indexing (with field boosts on title and keywords) and cosine-similarity vector search, fused via Reciprocal Rank Fusion (K=60).",
+      "Hybrid (default) fuses MiniSearch keyword hits with vector cosine similarity via RRF (K=60). Vector-first mode weights semantic similarity higher for large network shares.",
   },
   {
     label: "Heuristic boosting",
@@ -52,7 +52,7 @@ const techDetails = [
   {
     label: "Knowledge base",
     value:
-      "A pre-indexed corpus of SAS programs, CDISC ADaM dataset metadata, SAP sections, TLF specifications, ADRG sections, and FDA information requests, with pre-computed embeddings stored in a local JSON file.",
+      "Repository JSON ships with the app; optional network corpus is produced by scanning a mapped UNC path into evidence-corpus.network.json with the same embedding pipeline.",
   },
 ]
 

@@ -1,10 +1,16 @@
-import type { ReactNode } from "react"
+"use client"
 
-import type { CopilotResult } from "@/lib/server/copilot/schemas"
+import { useMemo, useState, type ReactNode } from "react"
+
+import { fileNameFromPath, fullPathForRankedCodeRow } from "@/lib/copilot/path-display"
+import { PLAN_RANKED_CODE_MAX, PLAN_RANKED_CODE_SCORE_SPREAD } from "@/lib/copilot/ranked-code-plan"
+import type { CopilotResult, EvidenceHit } from "@/lib/server/copilot/schemas"
 import { Badge } from "@/components/ui/badge"
 import { FormattedText } from "@/components/copilot/formatted-text"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
 import { HelpIcon } from "@/components/copilot/verbose-context"
+import { Button } from "@/components/ui/button"
 
 type ResponsePlanPanelProps = {
   pending: boolean
@@ -52,7 +58,43 @@ function UncertaintyBlock({
   )
 }
 
+function pathBuckets(evidence: EvidenceHit[]) {
+  const transport: string[] = []
+  const sas: string[] = []
+  const seenT = new Set<string>()
+  const seenS = new Set<string>()
+  for (const hit of evidence) {
+    const p = hit.document.path.replace(/\\/g, "/")
+    if (/\.(sas7bdat|xpt)$/i.test(p) && !seenT.has(p)) {
+      seenT.add(p)
+      transport.push(p)
+    }
+    if (/\.sas$/i.test(p) && !seenS.has(p)) {
+      seenS.add(p)
+      sas.push(p)
+    }
+  }
+  return {
+    transport: transport.sort(),
+    sas: sas.sort(),
+  }
+}
+
+function resolveDocIdForAsset(assetDocumentId: string): string {
+  return assetDocumentId.split("::macro:")[0] ?? assetDocumentId
+}
+
+function findSourceText(assetDocumentId: string, evidence: EvidenceHit[]): string | null {
+  const baseId = resolveDocIdForAsset(assetDocumentId)
+  const hit = evidence.find((h) => h.document.id === baseId)
+  return hit?.document.sourceText ?? null
+}
+
 export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
+  const [openCodeId, setOpenCodeId] = useState<string | null>(null)
+
+  const buckets = useMemo(() => (result ? pathBuckets(result.evidence) : { transport: [], sas: [] }), [result])
+
   if (pending) {
     return (
       <div className="space-y-4 animate-in">
@@ -81,29 +123,111 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
     )
   }
 
+  const { responsePlan, evidence, retrievalMetadata } = result
+  const candidateDatasetPaths = responsePlan.candidateDatasetPaths ?? []
+  const rankedCodeAssets = responsePlan.rankedCodeAssets ?? []
+
+  const pathsByDataset = new Map<string, string[]>()
+  for (const row of candidateDatasetPaths) {
+    const list = pathsByDataset.get(row.dataset) ?? []
+    if (!list.includes(row.path)) list.push(row.path)
+    pathsByDataset.set(row.dataset, list)
+  }
+
   return (
     <div className="stagger-children space-y-6">
+      {/* Evidence base — same run as plan (always visible so empty retrieval is obvious) */}
+      <div className="rounded-xl border border-[#10384F]/15 bg-gradient-to-br from-[#10384F]/[0.04] to-white px-5 py-4 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <SectionHeading tooltip="Counts and paths from the evidence retrieved for this question (same list as the Evidence tab). If this shows zero hits, switch pool, re-run ingest, or narrow your question.">
+            Evidence base (this run)
+          </SectionHeading>
+          <Badge variant="outline" className="shrink-0 text-[0.625rem]">
+            {retrievalMetadata.evidencePool === "network" ? "Network index" : "Repository"}
+          </Badge>
+        </div>
+        <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+          Open the <span className="font-semibold text-foreground">Evidence</span> tab for full text, scores, and
+          reasons. Below is a compact path index from the same hits.
+        </p>
+        {evidence.length === 0 ? (
+          <p className="mt-4 rounded-lg border border-dashed border-border/80 bg-muted/20 px-4 py-3 text-[0.8125rem] leading-relaxed text-muted-foreground">
+            No evidence documents were retrieved for this question. Try the other evidence pool (repository vs network
+            share), run corpus ingest so paths exist in the index, or add more specific analysis and dataset terms.
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-lg border border-border/70 bg-card p-3">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                Total evidence hits
+              </p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-[#10384F]">{evidence.length}</p>
+            </div>
+            <div className="rounded-lg border border-border/70 bg-card p-3">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                Analysis data set (transport in hits)
+              </p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-[#10384F]">{buckets.transport.length}</p>
+              <div className="mt-2 max-h-36 space-y-2 overflow-auto rounded border border-border/40 bg-muted/30 p-2 text-[0.65rem] leading-snug">
+                {buckets.transport.length === 0 ? (
+                  <span className="text-muted-foreground/70">None in hits (add .sas7bdat/.xpt via ingest)</span>
+                ) : (
+                  buckets.transport.slice(0, 80).map((p) => {
+                    const fn = fileNameFromPath(p)
+                    const ds = fn.replace(/\.[^.]+$/i, "").toUpperCase()
+                    return (
+                      <div key={p} className="border-b border-border/25 pb-2 last:border-0 last:pb-0">
+                        <span className="font-semibold text-foreground">{ds}</span>
+                        <div className="font-mono text-muted-foreground break-all">{p}</div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border/70 bg-card p-3">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                SAS programs (in hits)
+              </p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-[#10384F]">{buckets.sas.length}</p>
+              <div className="mt-2 max-h-36 space-y-2 overflow-auto rounded border border-border/40 bg-muted/30 p-2 text-[0.65rem] leading-snug">
+                {buckets.sas.length === 0 ? (
+                  <span className="text-muted-foreground/70">None in hits</span>
+                ) : (
+                  buckets.sas.slice(0, 80).map((p) => (
+                    <div key={p} className="border-b border-border/25 pb-2 last:border-0 last:pb-0">
+                      <span className="font-medium text-foreground">{fileNameFromPath(p)}</span>
+                      <div className="font-mono text-muted-foreground break-all">{p}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Objective + approach */}
       <div>
         <SectionHeading tooltip="The recommended approach outlines the overall objective and strategy the copilot suggests for addressing your regulatory question, based on matched evidence and known output patterns.">
           Recommended approach
         </SectionHeading>
         <p className="mt-2 text-base font-semibold leading-snug text-foreground">
-          {result.responsePlan.objective}
+          {responsePlan.objective}
         </p>
         <div className="mt-2 text-[0.9375rem] leading-relaxed text-foreground/85">
-          <FormattedText text={result.responsePlan.recommendedApproach} />
+          <FormattedText text={responsePlan.recommendedApproach} />
         </div>
       </div>
 
       {/* Deliverables */}
-      {result.responsePlan.deliverables.length > 0 && (
+      {responsePlan.deliverables.length > 0 && (
         <div>
           <SectionHeading tooltip="Deliverables are the specific outputs the copilot recommends producing - e.g. tables, figures, or listings. Each is derived from matched SAS programs and dataset structures in the evidence corpus.">
             Deliverables
           </SectionHeading>
           <ol className="mt-2 space-y-1.5 pl-5">
-            {result.responsePlan.deliverables.map((item, i) => (
+            {responsePlan.deliverables.map((item, i) => (
               <li key={item} className="text-[0.9375rem] leading-relaxed text-foreground/85">
                 <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[0.625rem] font-bold text-primary">
                   {i + 1}
@@ -116,7 +240,7 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
       )}
 
       {/* Responsibilities */}
-      {result.responsePlan.responsibilities.length > 0 && (
+      {responsePlan.responsibilities.length > 0 && (
         <>
           <Separator />
           <div>
@@ -124,7 +248,7 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
               Responsibilities
             </SectionHeading>
             <div className="mt-2 space-y-3">
-              {result.responsePlan.responsibilities.map((r) => (
+              {responsePlan.responsibilities.map((r) => (
                 <div key={r.role} className="rounded-md border border-border bg-muted/50 px-4 py-3">
                   <p className="text-sm font-semibold text-foreground">{r.role}</p>
                   <ul className="mt-1 space-y-0.5 pl-4">
@@ -143,33 +267,168 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
 
       <Separator />
 
-      {/* Data sources + outputs in 2-col */}
-      <div className="grid gap-6 sm:grid-cols-2">
+      {/* Candidate data sources with paths */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <SectionHeading tooltip="Candidate data sources are the ADaM datasets and other data assets that the copilot identified as likely needed to produce the recommended deliverables.">
+          <SectionHeading tooltip="Each dataset name is matched to concrete paths found in retrieved evidence (e.g. ADSL in a .sas7bdat or .xpt path). Re-run network ingest if paths are missing.">
             Candidate data sources
           </SectionHeading>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {result.responsePlan.recommendedDatasets.map((ds) => (
-              <Badge key={ds} variant="secondary" className="rounded-md text-[0.6875rem]">
-                {ds}
-              </Badge>
-            ))}
+          <div className="mt-3 space-y-4">
+            {responsePlan.recommendedDatasets.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No datasets inferred for this run.</p>
+            ) : (
+              responsePlan.recommendedDatasets.map((ds) => {
+                const paths = pathsByDataset.get(ds) ?? []
+                return (
+                  <div key={ds} className="rounded-lg border border-border/70 bg-muted/20 px-4 py-3">
+                    <p className="text-sm font-bold text-foreground">{ds}</p>
+                    {paths.length === 0 ? (
+                      <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+                        No matching paths in evidence hits — try network ingest or a more specific question.
+                      </p>
+                    ) : (
+                      <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto font-mono text-[0.6875rem] leading-snug text-muted-foreground">
+                        {paths.map((p) => (
+                          <li key={p} className="break-all border-b border-border/30 pb-1 last:border-0">
+                            {p}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
 
         <div>
-          <SectionHeading tooltip="Prior outputs are existing SAS programs, tables, or figures in the repo that could be reused or adapted for your request - reducing the need to build from scratch.">
+          <SectionHeading tooltip="Prior outputs are titles and families drawn from evidence and interpretation — reuse candidates, not final deliverables.">
             Prior outputs to reuse
           </SectionHeading>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {result.responsePlan.candidateOutputs.map((out) => (
+            {responsePlan.candidateOutputs.map((out) => (
               <Badge key={out} variant="outline" className="rounded-md text-[0.6875rem]">
                 {out}
               </Badge>
             ))}
           </div>
+          <p className="mt-3 text-[0.75rem] leading-snug text-muted-foreground">
+            The table below lists the strongest SAS matches for this question: up to {PLAN_RANKED_CODE_MAX} rows, within{" "}
+            {PLAN_RANKED_CODE_SCORE_SPREAD} relevance points of the top hit. If the full path column still shows only{" "}
+            <span className="font-mono text-foreground/80">pgms/…</span>, set{" "}
+            <span className="font-medium text-foreground">EVIDENCE_SCAN_ROOT</span> to the same folder you used for
+            network ingest (or rebuild the index so each document stores an absolute path), then re-run the copilot.
+          </p>
         </div>
+      </div>
+
+      {/* Programs / macros table */}
+      <Separator />
+      <div>
+        <SectionHeading tooltip={`Shows up to ${PLAN_RANKED_CODE_MAX} program/macro rows closest to your question: only hits within ${PLAN_RANKED_CODE_SCORE_SPREAD} relevance points of the best score. Macros are split per %macro in the same source file.`}>
+          Most likely programs / macros for this question
+        </SectionHeading>
+        {rankedCodeAssets.length === 0 ? (
+          <p className="mt-3 text-[0.8125rem] text-muted-foreground">
+            No .sas programs appeared in this run&apos;s evidence list. Retrieval now backfills SAS from the ranked
+            index when possible—if this stays empty, your corpus may have no indexed programs for this pool or scores
+            filtered everything out.
+          </p>
+        ) : (
+          <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+              <table className="table-fixed w-full min-w-[48rem] border-collapse text-left text-[0.75rem]">
+                <colgroup>
+                  <col className="w-[4.5rem]" />
+                  <col className="w-[4.25rem]" />
+                  <col className="w-[10rem]" />
+                  <col className="w-[min(40%,22rem)]" />
+                  <col />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="px-1.5 py-1.5 font-heading text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground">
+                      Type
+                    </th>
+                    <th className="px-1.5 py-1.5 font-heading text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground">
+                      Rel.
+                    </th>
+                    <th className="px-1.5 py-1.5 font-heading text-[0.5625rem] font-bold uppercase leading-tight text-muted-foreground">
+                      Program / macro
+                    </th>
+                    <th className="px-1.5 py-1.5 font-heading text-[0.5625rem] font-bold uppercase leading-tight text-muted-foreground">
+                      Full path (UNC / absolute)
+                    </th>
+                    <th className="min-w-0 px-1.5 py-1.5 font-heading text-[0.5625rem] font-bold uppercase tracking-wider text-muted-foreground">
+                      Code
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rankedCodeAssets.map((row) => {
+                    const codeKey = row.documentId
+                    const source = findSourceText(row.documentId, evidence)
+                    const fullPathCell = fullPathForRankedCodeRow(
+                      row,
+                      evidence,
+                      retrievalMetadata.networkScanRootUsed,
+                    )
+                    return (
+                      <tr key={codeKey} className="border-b border-border/60 align-top">
+                        <td className="px-1.5 py-1.5 capitalize whitespace-nowrap">{row.assetType}</td>
+                        <td className="px-1.5 py-1.5 tabular-nums font-medium whitespace-nowrap">
+                          {row.relevancePercent}%
+                        </td>
+                        <td className="min-w-0 px-1.5 py-1.5 align-top">
+                          <span className="block font-semibold leading-tight text-foreground">
+                            {row.assetType === "program" ? fileNameFromPath(row.path) : row.title}
+                          </span>
+                          {row.assetType === "macro" ? (
+                            <span className="mt-0.5 block text-[0.625rem] leading-tight text-muted-foreground">
+                              in {fileNameFromPath(row.path)}
+                            </span>
+                          ) : null}
+                          {row.relativePath ? (
+                            <span className="mt-0.5 block font-mono text-[0.625rem] leading-tight text-muted-foreground break-all">
+                              {row.relativePath}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td
+                          className="min-w-[14rem] px-1.5 py-1.5 align-top font-mono text-[0.625rem] leading-snug break-all text-muted-foreground"
+                          title={fullPathCell}
+                        >
+                          {fullPathCell}
+                        </td>
+                        <td className="min-w-0 px-1.5 py-1.5">
+                          {source ? (
+                            <Collapsible
+                              open={openCodeId === codeKey}
+                              onOpenChange={(o) => setOpenCodeId(o ? codeKey : null)}
+                            >
+                              <CollapsibleTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-7 shrink-0 text-[0.625rem]">
+                                  {openCodeId === codeKey ? "Hide" : "Code"}
+                                </Button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <pre className="mt-2 max-h-[min(70vh,36rem)] w-full min-w-0 overflow-auto rounded border border-border bg-muted/40 p-2.5 font-mono text-[0.625rem] leading-snug">
+                                  {source.slice(0, 24_000)}
+                                  {source.length > 24_000 ? "\n\n… truncated …" : ""}
+                                </pre>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          ) : (
+                            <span className="text-muted-foreground/60">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+        )}
       </div>
 
       {/* Uncertainty sections */}
@@ -212,15 +471,15 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
       )}
 
       {/* Citations */}
-      {result.responsePlan.citations.length > 0 && (
+      {responsePlan.citations.length > 0 && (
         <>
           <Separator />
           <div>
-            <SectionHeading tooltip="Citations reference specific repo files (SAS programs, README sections, define.xml entries) that grounded the copilot's recommendations. Use these to trace the plan back to source evidence.">
+            <SectionHeading tooltip="Citations include evidence document IDs merged from the LLM and the full retrieval set so you can trace every surfaced asset.">
               Citations
             </SectionHeading>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {result.responsePlan.citations.map((c) => (
+            <div className="mt-2 flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
+              {responsePlan.citations.map((c) => (
                 <Badge key={c} variant="outline" className="rounded-md text-[0.6875rem]">
                   {c}
                 </Badge>

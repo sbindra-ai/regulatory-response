@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { QuestionForm } from "@/components/copilot/question-form"
 import { demoPrompts } from "@/lib/copilot/demo-prompts"
+import { PRODUCT_DISPLAY_NAME } from "@/lib/copilot/product-meta"
 
 // Mock next/image to render a plain <img>
 vi.mock("next/image", () => ({
@@ -20,7 +21,7 @@ describe("header", () => {
         <div className="flex items-center gap-3">
           <img src="/logos/Logo_Bayer.svg" alt="Bayer" width={36} height={36} />
           <div>
-            <p>Regulatory-Response Copilot</p>
+            <p>{PRODUCT_DISPLAY_NAME}</p>
             <p>Grounded planning aid for SPA and biostatistics teams</p>
           </div>
         </div>
@@ -40,7 +41,7 @@ describe("header", () => {
 
   it("renders the product title", () => {
     renderHeader()
-    expect(screen.getByText("Regulatory-Response Copilot")).toBeInTheDocument()
+    expect(screen.getByText(PRODUCT_DISPLAY_NAME)).toBeInTheDocument()
   })
 
   it("renders all trust strip items", () => {
@@ -57,6 +58,8 @@ describe("question form", () => {
     formAction: vi.fn(),
     onInterrupt: vi.fn(),
     onRebuild: vi.fn(),
+    networkRebuildResult: null,
+    networkRebuilding: false,
     pending: false,
     question: "",
     rebuildResult: null,

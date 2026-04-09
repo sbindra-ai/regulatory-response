@@ -1,10 +1,10 @@
-# AI-Powered Regulatory Response Accelerator for SPA
+# Regulatory AI for Structured Execution (RAISE)
 
 Reducing regulatory response cycle time through AI-assisted analysis planning and knowledge retrieval.
 
 ## Contents
 
-- [AI-Powered Regulatory Response Accelerator for SPA](#ai-powered-regulatory-response-accelerator-for-spa)
+- [Regulatory AI for Structured Execution (RAISE)](#regulatory-ai-for-structured-execution-raise)
   - [Contents](#contents)
   - [Overview](#overview)
   - [Why This Matters](#why-this-matters)
@@ -28,7 +28,7 @@ Reducing regulatory response cycle time through AI-assisted analysis planning an
   - [Prototype Data Sources](#prototype-data-sources)
   - [Long-Term Value for SPA](#long-term-value-for-spa)
   - [What Good Looks Like for the Prototype](#what-good-looks-like-for-the-prototype)
-  - [Working Title](#working-title)
+  - [Product name](#product-name)
 
 ## Overview
 
@@ -58,7 +58,7 @@ Current pain points:
 
 ## Product Vision
 
-The tool should become a Regulatory Response Copilot for SPA.
+**Regulatory AI for Structured Execution (RAISE)** is the planning copilot for SPA in this repository.
 
 Its job is to turn a regulatory question into an execution plan by helping teams:
 
@@ -270,14 +270,14 @@ By the end of the hackathon, the prototype should be able to:
 4. Generate a response outline the team could actually edit
 5. Present the result in a way that is easy to demo and explain
 
-## Working Title
+## Product name
 
-AI-Powered Regulatory Response Accelerator for SPA
+**Regulatory AI for Structured Execution (RAISE)** — system and UI name.
 
-Alternative shorthand for presentations and demos:
+Shorthand for presentations and demos:
 
-- Regulatory Response Copilot
-- SPA Response Accelerator
+- RAISE
+- Regulatory AI for Structured Execution
 
 ## Local Development
 
@@ -349,7 +349,7 @@ npm run build
 
 ### Current MVP Scope
 
-This repository now contains a hackathon-ready regulatory-response planning copilot that:
+This repository now contains a hackathon-ready **RAISE** planning copilot (**Regulatory AI for Structured Execution**) that:
 
 - interprets a narrow, credible set of regulatory asks
 - grounds retrieval in the repo brief, `define.xml`, and curated SAS examples

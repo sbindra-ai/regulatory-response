@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 
-import type { EvidenceHit } from "@/lib/server/copilot/schemas"
+import { fileNameFromPath } from "@/lib/copilot/path-display"
+import type { EvidenceHit, RetrievalMetadata } from "@/lib/server/copilot/schemas"
 import { Badge } from "@/components/ui/badge"
 import { FormattedText } from "@/components/copilot/formatted-text"
 import { Separator } from "@/components/ui/separator"
@@ -11,9 +12,11 @@ import { HelpIcon } from "@/components/copilot/verbose-context"
 type EvidencePanelProps = {
   evidence: EvidenceHit[]
   pending: boolean
+  retrievalMetadata?: RetrievalMetadata | null
 }
 
-const EVIDENCE_DISPLAY_LIMIT = 8
+const REPO_EVIDENCE_DISPLAY_LIMIT = 8
+const NETWORK_EVIDENCE_DISPLAY_LIMIT = 36
 
 function EvidenceRow({ hit, index }: { hit: EvidenceHit; index: number }) {
   return (
@@ -28,10 +31,26 @@ function EvidenceRow({ hit, index }: { hit: EvidenceHit; index: number }) {
       {/* Main content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-4">
-          <h3 className="text-[0.9375rem] font-semibold leading-snug text-foreground">
-            {hit.document.title}
-            <HelpIcon tooltip="The evidence title identifies the matched repo asset - a SAS program, dataset definition, or README section. Click to understand what this asset contains." />
-          </h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[0.9375rem] font-semibold leading-snug text-foreground">
+              {hit.document.title}
+              <HelpIcon tooltip="The evidence title identifies the matched repo asset - a SAS program, dataset definition, or README section. Click to understand what this asset contains." />
+            </h3>
+            <p className="mt-1 font-mono text-[0.75rem] leading-snug">
+              <span className="font-semibold text-muted-foreground">File: </span>
+              <span className="font-medium text-foreground/90">{fileNameFromPath(hit.document.path)}</span>
+            </p>
+            {hit.document.relativePath ? (
+              <p className="mt-1 text-[0.6875rem] leading-relaxed">
+                <span className="font-semibold text-muted-foreground">Path under share root: </span>
+                <span className="font-mono text-muted-foreground">{hit.document.relativePath}</span>
+              </p>
+            ) : null}
+            <p className="mt-1.5 text-[0.6875rem] leading-relaxed">
+              <span className="font-semibold text-muted-foreground">Full path (UNC / absolute): </span>
+              <span className="font-mono break-all text-muted-foreground">{hit.document.path}</span>
+            </p>
+          </div>
           <Badge
             variant="outline"
             className="shrink-0 rounded-md font-heading text-[0.625rem] uppercase tracking-wider"
@@ -79,23 +98,31 @@ function EvidenceRow({ hit, index }: { hit: EvidenceHit; index: number }) {
             <HelpIcon tooltip="Tags show which ADaM datasets this evidence uses and which output family it belongs to (e.g. ae-overall, soc-pt, eair). These help you understand the evidence's scope." />
           </div>
         )}
-
-        {/* File path */}
-        <p className="mt-2 font-mono text-[0.6875rem] leading-snug text-muted-foreground/70">
-          {hit.document.path}
-        </p>
       </div>
     </div>
   )
 }
 
-export function EvidencePanel({ evidence, pending }: EvidencePanelProps) {
+function retrievalSummary(meta: RetrievalMetadata): string {
+  const pool = meta.evidencePool === "network" ? "Network share" : "Repository"
+  const mode =
+    meta.method === "vector-primary"
+      ? "vector-first"
+      : meta.method === "hybrid"
+        ? "hybrid"
+        : "keyword-only"
+  return `${pool} · ${mode}`
+}
+
+export function EvidencePanel({ evidence, pending, retrievalMetadata }: EvidencePanelProps) {
   const [expanded, setExpanded] = useState(false)
+  const displayLimit =
+    retrievalMetadata?.evidencePool === "network"
+      ? NETWORK_EVIDENCE_DISPLAY_LIMIT
+      : REPO_EVIDENCE_DISPLAY_LIMIT
 
   const visibleEvidence =
-    !expanded && evidence.length > EVIDENCE_DISPLAY_LIMIT
-      ? evidence.slice(0, EVIDENCE_DISPLAY_LIMIT)
-      : evidence
+    !expanded && evidence.length > displayLimit ? evidence.slice(0, displayLimit) : evidence
 
   if (pending) {
     return (
@@ -124,7 +151,7 @@ export function EvidencePanel({ evidence, pending }: EvidencePanelProps) {
     return (
       <div className="py-12 text-center">
         <p className="text-sm text-muted-foreground">
-          No evidence ranked yet. Results appear here after the copilot retrieves matching repo assets.
+          No evidence ranked yet. Results appear here after the copilot retrieves matching assets.
         </p>
       </div>
     )
@@ -132,6 +159,17 @@ export function EvidencePanel({ evidence, pending }: EvidencePanelProps) {
 
   return (
     <div className="stagger-children space-y-0">
+      {retrievalMetadata ? (
+        <div className="mb-4 rounded-lg border border-[#00BCFF]/20 bg-[#00BCFF]/[0.06] px-4 py-3 text-[0.8125rem] text-[#10384F]">
+          <span className="font-semibold">Active index:</span>{" "}
+          <span className="tabular-nums">{retrievalSummary(retrievalMetadata)}</span>
+          {retrievalMetadata.topSimilarity !== null && retrievalMetadata.topSimilarity > 0 && (
+            <span className="ml-2 text-muted-foreground">
+              · top semantic match {Math.round(retrievalMetadata.topSimilarity * 100)}%
+            </span>
+          )}
+        </div>
+      ) : null}
       {/* Column headers */}
       <div className="flex items-center gap-4 px-4 pb-3">
         <span className="w-8 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -148,7 +186,7 @@ export function EvidencePanel({ evidence, pending }: EvidencePanelProps) {
         <EvidenceRow key={hit.document.id} hit={hit} index={index} />
       ))}
 
-      {evidence.length > EVIDENCE_DISPLAY_LIMIT && (
+      {evidence.length > displayLimit && (
         <div className="pt-4 text-center">
           <button
             type="button"

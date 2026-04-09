@@ -29,6 +29,9 @@ export async function runCopilotAction(
   const maxTokens = maxTokensRaw ? Number(maxTokensRaw) : undefined
   const temperature = temperatureRaw ? Number(temperatureRaw) : undefined
   const mgaToken = formData.get("mgaToken")?.toString().trim() || undefined
+  const evidencePool = formData.get("evidencePool") === "network" ? "network" : "repository"
+  const retrievalStrategy =
+    formData.get("retrievalStrategy") === "vector-primary" ? "vector-primary" : "hybrid"
 
   try {
     return {
@@ -36,7 +39,9 @@ export async function runCopilotAction(
       question,
       result: await runWithMgaToken(mgaToken, () =>
         runCopilot(question, {
+          evidencePool,
           maxTokens: maxTokens && maxTokens > 0 ? maxTokens : undefined,
+          retrievalStrategy,
           temperature: temperature !== undefined && !Number.isNaN(temperature) ? temperature : undefined,
         }),
       ),

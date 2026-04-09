@@ -3,6 +3,7 @@ import { resolve } from "node:path"
 
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
+import { PRODUCT_DISPLAY_NAME } from "@/lib/copilot/product-meta"
 import type { CopilotResult } from "@/lib/server/copilot/schemas"
 
 type CopilotReportProps = {
@@ -226,7 +227,7 @@ export function CopilotReport({ question, result }: CopilotReportProps) {
           {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image has no alt prop */}
           <Image src={bayerLogoPng} style={s.logo} />
           <View>
-            <Text style={s.headerTitle}>Regulatory-Response Copilot</Text>
+            <Text style={s.headerTitle}>{PRODUCT_DISPLAY_NAME}</Text>
             <Text style={s.headerSub}>Generated {generatedAt}</Text>
           </View>
         </View>
@@ -347,7 +348,7 @@ export function CopilotReport({ question, result }: CopilotReportProps) {
 
         {/* Footer */}
         <View style={s.footer} fixed>
-          <Text>Regulatory-Response Copilot - Internal Use Only</Text>
+          <Text>{PRODUCT_DISPLAY_NAME} — Internal use only</Text>
           <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
         </View>
       </Page>

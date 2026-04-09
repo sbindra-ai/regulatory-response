@@ -25,7 +25,7 @@ describe("buildCorpus", () => {
     })
 
     expect(corpus.generatedAt).toBe("2026-03-17T00:00:00.000Z")
-    expect(corpus.brief.title).toBe("AI-Powered Regulatory Response Accelerator for SPA")
+    expect(corpus.brief.title).toBe("Regulatory AI for Structured Execution (RAISE)")
     expect(corpus.datasets.map((dataset) => dataset.name)).toEqual(
       expect.arrayContaining(["ADAE", "ADLB", "ADSL", "ADVS"]),
     )

@@ -1,4 +1,7 @@
 node_modules
+
+# Portable/local Node.js install at repo root (do not commit)
+/node/
 .next
 out
 coverage

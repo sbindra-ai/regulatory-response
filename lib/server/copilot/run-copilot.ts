@@ -11,12 +11,16 @@ import {
   logCopilotRunStarted,
   logCopilotStageCompleted,
 } from "@/lib/server/copilot/logging"
+import { mergeResponsePlanWithEvidence } from "@/lib/server/copilot/enrich-response-plan"
 import { retrieveEvidence } from "@/lib/server/copilot/retrieve-evidence"
 import { generateEmbeddings } from "@/lib/server/llm/openai"
-import { copilotResultSchema, type CopilotResult } from "@/lib/server/copilot/schemas"
+import { copilotResultSchema, type CopilotResult, type EvidencePool } from "@/lib/server/copilot/schemas"
+import type { RetrievalStrategy } from "@/lib/server/copilot/retrieve-evidence"
 
 export type CopilotOptions = {
+  evidencePool?: EvidencePool
   maxTokens?: number
+  retrievalStrategy?: RetrievalStrategy
   temperature?: number
 }
 
@@ -45,9 +49,11 @@ export async function runCopilot(question: string, options?: CopilotOptions): Pr
     // Stage 2: retrieve evidence using pre-computed embeddings
     const stage2Start = Date.now()
     const { evidence, retrievalMetadata } = await retrieveEvidence({
+      evidencePool: options?.evidencePool ?? "repository",
       interpretation,
       precomputedEmbeddings: queryEmbeddings,
       question: normalizedQuestion,
+      retrievalStrategy: options?.retrievalStrategy ?? "hybrid",
     })
 
     const confidenceScore = computeConfidenceScore({
@@ -70,6 +76,8 @@ export async function runCopilot(question: string, options?: CopilotOptions): Pr
     })
     logCopilotStageCompleted(context, "generate-plan", { latencyMs: Date.now() - stage3Start })
 
+    const responsePlan = mergeResponsePlanWithEvidence(planBundle.responsePlan, evidence, interpretation)
+
     const tokenUsage = {
       promptTokens: interpretUsage.promptTokens + planBundle.usage.promptTokens,
       completionTokens: interpretUsage.completionTokens + planBundle.usage.completionTokens,
@@ -79,7 +87,11 @@ export async function runCopilot(question: string, options?: CopilotOptions): Pr
     const result = copilotResultSchema.parse({
       interpretation,
       evidence,
-      ...planBundle,
+      assumptions: planBundle.assumptions,
+      evidenceGaps: planBundle.evidenceGaps,
+      openQuestions: planBundle.openQuestions,
+      responsePlan,
+      warnings: planBundle.warnings,
       retrievalMetadata,
       tokenUsage,
     })

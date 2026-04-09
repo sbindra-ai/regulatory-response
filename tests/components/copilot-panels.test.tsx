@@ -102,6 +102,7 @@ describe("copilot panels", () => {
               method: "hybrid" as const,
               documentCount: 1,
               topSimilarity: 0.87,
+              evidencePool: "repository" as const,
             },
             tokenUsage: {
               promptTokens: 1200,

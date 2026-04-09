@@ -18,10 +18,20 @@ type QuestionFormProps = {
   formAction: (payload: FormData) => void
   onInterrupt: () => void
   onRebuild: () => void
+  onRebuildNetwork?: () => void
   pending: boolean
   question: string
   rebuildResult: { documentCount: number; embeddingCount: number } | null
   rebuilding: boolean
+  networkRebuildResult: {
+    documentCount: number
+    embeddingCount: number
+    scanRootUsed?: string
+  } | null
+  networkRebuilding: boolean
+  networkRebuildError?: string | null
+  networkScanRoot?: string
+  onNetworkScanRootChange?: (value: string) => void
   samplePrompts: DemoPrompt[]
   setQuestion: (question: string) => void
   detectedQuestions: DetectedQuestion[]
@@ -136,10 +146,16 @@ export function QuestionForm({
   formAction,
   onInterrupt,
   onRebuild,
+  onRebuildNetwork,
   pending,
   question,
   rebuildResult,
   rebuilding,
+  networkRebuildResult,
+  networkRebuilding,
+  networkRebuildError = null,
+  networkScanRoot = "",
+  onNetworkScanRootChange,
   samplePrompts,
   setQuestion,
   detectedQuestions,
@@ -149,6 +165,8 @@ export function QuestionForm({
   setUploadPending,
 }: QuestionFormProps) {
   const [showSettings, setShowSettings] = useState(false)
+  const [evidencePool, setEvidencePool] = useState<"repository" | "network">("repository")
+  const [retrievalStrategy, setRetrievalStrategy] = useState<"hybrid" | "vector-primary">("hybrid")
   const [maxTokens, setMaxTokens] = useState(DEFAULT_MAX_TOKENS)
   const [temperature, setTemperature] = useState(DEFAULT_TEMPERATURE)
   const [mgaToken, setMgaTokenState] = useState("")
@@ -304,6 +322,86 @@ export function QuestionForm({
         className="hidden"
       />
 
+      <div className="rounded-xl border border-border/60 bg-gradient-to-br from-[#10384F]/[0.03] to-white px-5 py-4 shadow-[0_1px_3px_rgba(16,56,79,0.06)]">
+        <p className="font-heading text-[0.8125rem] font-bold tracking-wide text-foreground/80 uppercase">
+          Knowledge retrieval
+        </p>
+        <p className="mt-1 text-[0.8125rem] leading-snug text-muted-foreground">
+          Choose where ranked evidence comes from. Network ingest indexes{" "}
+          <span className="font-semibold text-foreground/80">.sas, .txt, .pdf, .sas7bdat, and .xpt</span> under a folder
+          the <span className="font-semibold text-foreground/80">server</span> can read (mapped drive like{" "}
+          <code className="rounded bg-muted/80 px-1 font-mono text-[0.6875rem]">X:\study</code> or UNC). The app does not
+          browse the share at query time—it loads{" "}
+          <code className="rounded bg-muted/80 px-1 font-mono text-[0.6875rem]">evidence-corpus.network.json</code> built
+          by <code className="rounded bg-muted/80 px-1 py-0.5 font-mono text-[0.6875rem]">Rebuild network index</code> or{" "}
+          <code className="rounded bg-muted/80 px-1 py-0.5 font-mono text-[0.6875rem]">npm run ingest:network</code>{" "}
+          (set <code className="rounded bg-muted/80 px-1 py-0.5 font-mono text-[0.6875rem]">MGA_TOKEN</code> for
+          embeddings).
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-1.5">
+            <span className="text-[0.75rem] font-semibold text-muted-foreground">Evidence source</span>
+            <select
+              name="evidencePool"
+              value={evidencePool}
+              onChange={(e) => {
+                const v = e.target.value === "network" ? "network" : "repository"
+                setEvidencePool(v)
+                if (v === "network" && retrievalStrategy === "hybrid") {
+                  setRetrievalStrategy("vector-primary")
+                }
+              }}
+              className="focus-ring w-full rounded-lg border border-border/70 bg-white px-3 py-2 text-[0.8125rem] text-foreground outline-none transition-colors focus:border-[#00BCFF]/50"
+            >
+              <option value="repository">Repository (demo SAS, define.xml, PDFs)</option>
+              <option value="network">Network share (Samba index)</option>
+            </select>
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-[0.75rem] font-semibold text-muted-foreground">Ranking mode</span>
+            <select
+              name="retrievalStrategy"
+              value={retrievalStrategy}
+              onChange={(e) =>
+                setRetrievalStrategy(e.target.value === "vector-primary" ? "vector-primary" : "hybrid")
+              }
+              className="focus-ring w-full rounded-lg border border-border/70 bg-white px-3 py-2 text-[0.8125rem] text-foreground outline-none transition-colors focus:border-[#00BCFF]/50"
+            >
+              <option value="hybrid">Hybrid (keywords + vectors)</option>
+              <option value="vector-primary">Vector-first (semantic)</option>
+            </select>
+          </label>
+        </div>
+        {evidencePool === "network" && (
+          <div className="mt-3 space-y-2">
+            <label className="block space-y-1.5">
+              <span className="text-[0.75rem] font-semibold text-muted-foreground">
+                Network scan root (server path)
+              </span>
+              <input
+                type="text"
+                value={networkScanRoot}
+                onChange={(e) => onNetworkScanRootChange?.(e.target.value)}
+                placeholder="e.g. \\by-swanPRD\swan\root\bhc\3427080 or //by-swanPRD/swan/root/..."
+                autoComplete="off"
+                className="focus-ring w-full rounded-lg border border-border/70 bg-white px-3 py-2 font-mono text-[0.8125rem] text-foreground outline-none transition-colors focus:border-[#00BCFF]/50"
+              />
+              <span className="block text-[0.6875rem] leading-snug text-muted-foreground">
+                Used when you click <span className="font-medium text-foreground/80">Rebuild network index</span>. If empty,
+                the server uses <code className="rounded bg-muted/80 px-1 font-mono">EVIDENCE_SCAN_ROOT</code> from{" "}
+                <code className="rounded bg-muted/80 px-1 font-mono">.env</code>. Interpretation still uses the demo
+                repository; evidence comes from the JSON built from this folder.
+              </span>
+            </label>
+            {networkRebuildError ? (
+              <p className="whitespace-pre-wrap rounded-md border border-destructive/25 bg-destructive/[0.06] px-3 py-2 text-[0.75rem] leading-snug text-destructive">
+                {networkRebuildError}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </div>
+
       {!mgaToken && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
           <svg className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -410,8 +508,18 @@ export function QuestionForm({
               onClick={onRebuild}
               className="focus-ring h-13 cursor-pointer rounded-xl border border-border/70 bg-white px-6 text-[0.875rem] font-semibold text-foreground shadow-[0_1px_3px_rgba(16,56,79,0.06)] transition-all hover:border-[#00BCFF]/50 hover:shadow-[0_2px_8px_rgba(0,188,255,0.1)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
             >
-              {rebuilding ? "Rebuilding\u2026" : "Rebuild Knowledge Base"}
+              {rebuilding ? "Rebuilding\u2026" : "Rebuild repo index"}
             </button>
+            {onRebuildNetwork ? (
+              <button
+                type="button"
+                disabled={networkRebuilding}
+                onClick={onRebuildNetwork}
+                className="focus-ring h-13 cursor-pointer rounded-xl border border-[#10384F]/20 bg-[#10384F]/[0.04] px-5 text-[0.875rem] font-semibold text-[#10384F] shadow-[0_1px_3px_rgba(16,56,79,0.06)] transition-all hover:border-[#00BCFF]/50 hover:shadow-[0_2px_8px_rgba(0,188,255,0.1)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+              >
+                {networkRebuilding ? "Scanning share\u2026" : "Rebuild network index"}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => setShowSettings((prev) => !prev)}
@@ -431,7 +539,20 @@ export function QuestionForm({
             </button>
             {rebuildResult && (
               <span className="text-[0.75rem] tabular-nums text-muted-foreground">
-                {rebuildResult.documentCount} docs, {rebuildResult.embeddingCount} embedded
+                Repo: {rebuildResult.documentCount} docs, {rebuildResult.embeddingCount} embedded
+              </span>
+            )}
+            {networkRebuildResult && (
+              <span className="max-w-md text-[0.75rem] leading-snug text-muted-foreground">
+                Network: {networkRebuildResult.documentCount} files, {networkRebuildResult.embeddingCount} embedded
+                {networkRebuildResult.scanRootUsed ? (
+                  <>
+                    {" "}
+                    <span className="block truncate font-mono text-[0.6875rem]" title={networkRebuildResult.scanRootUsed}>
+                      {networkRebuildResult.scanRootUsed}
+                    </span>
+                  </>
+                ) : null}
               </span>
             )}
             {pending ? <PipelineStatus /> : null}

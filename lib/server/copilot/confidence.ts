@@ -8,7 +8,7 @@ import type {
 type ComputeConfidenceInput = {
   evidence: EvidenceHit[]
   interpretation: RequestInterpretation
-  retrievalMethod: "hybrid" | "keyword-only"
+  retrievalMethod: "hybrid" | "keyword-only" | "vector-primary"
 }
 
 function computeInterpretationScore(interpretation: RequestInterpretation): {
@@ -48,7 +48,7 @@ function computeInterpretationScore(interpretation: RequestInterpretation): {
 
 function computeEvidenceRelevanceScore(
   evidence: EvidenceHit[],
-  retrievalMethod: "hybrid" | "keyword-only",
+  retrievalMethod: "hybrid" | "keyword-only" | "vector-primary",
 ): {
   score: number
   reasons: string[]
@@ -59,7 +59,7 @@ function computeEvidenceRelevanceScore(
 
   const reasons: string[] = []
 
-  if (retrievalMethod === "hybrid") {
+  if (retrievalMethod === "hybrid" || retrievalMethod === "vector-primary") {
     const topSimilarity = evidence.reduce(
       (max, hit) => Math.max(max, hit.vectorSimilarity ?? 0),
       0,
@@ -68,8 +68,20 @@ function computeEvidenceRelevanceScore(
     if (topSimilarity > 0) {
       const score = Math.round(topSimilarity * 100)
       reasons.push(`Top evidence has ${topSimilarity.toFixed(2)} cosine similarity to query`)
+      if (retrievalMethod === "vector-primary") {
+        reasons.push("Vector-first ranking emphasized semantic similarity")
+      }
       return { score, reasons }
     }
+  }
+
+  const topRetrievalScore = evidence.reduce((max, hit) => Math.max(max, hit.score), 0)
+  if (topRetrievalScore > 0) {
+    const score = Math.min(78, Math.round(topRetrievalScore * 0.82))
+    reasons.push(
+      "Vector similarity unavailable or weak in top hits — relevance inferred from retrieval ranking scores",
+    )
+    return { score, reasons }
   }
 
   // Keyword-only fallback: normalize keyword score, cap at 80

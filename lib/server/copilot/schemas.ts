@@ -23,6 +23,7 @@ export const evidenceSourceTypeSchema = z.enum([
   "fda-request",
   "ads-spec",
   "case-data",
+  "network-file",
 ])
 
 export const requestInterpretationSchema = z.object({
@@ -45,6 +46,8 @@ export const evidenceDocumentSchema = z.object({
   title: z.string().min(1),
   sourceType: evidenceSourceTypeSchema,
   path: z.string().min(1),
+  /** Path under the network ingest root (forward slashes), e.g. pgms/start.sas — for display next to full UNC. */
+  relativePath: z.string().optional(),
   summary: z.string().min(1),
   keywords: z.array(z.string().min(1)),
   datasetNames: z.array(z.string().min(1)),
@@ -115,6 +118,21 @@ export const responsibilitySchema = z.object({
   tasks: z.array(z.string().min(1)),
 })
 
+export const candidateDatasetPathSchema = z.object({
+  dataset: z.string().min(1),
+  path: z.string().min(1),
+})
+
+export const rankedCodeAssetSchema = z.object({
+  assetType: z.enum(["program", "macro"]),
+  relevancePercent: z.number().min(0).max(100),
+  title: z.string().min(1),
+  path: z.string().min(1),
+  relativePath: z.string().optional(),
+  documentId: z.string().min(1),
+  callingProgramPaths: z.array(z.string()),
+})
+
 export const responsePlanSchema = z.object({
   objective: z.string().min(1),
   recommendedApproach: z.string().min(1),
@@ -123,12 +141,19 @@ export const responsePlanSchema = z.object({
   deliverables: z.array(z.string().min(1)),
   responsibilities: z.array(responsibilitySchema),
   citations: z.array(z.string().min(1)),
+  candidateDatasetPaths: z.array(candidateDatasetPathSchema).default([]),
+  rankedCodeAssets: z.array(rankedCodeAssetSchema).default([]),
 })
 
+export const evidencePoolSchema = z.enum(["repository", "network"])
+
 export const retrievalMetadataSchema = z.object({
-  method: z.enum(["hybrid", "keyword-only"]),
+  method: z.enum(["hybrid", "keyword-only", "vector-primary"]),
   documentCount: z.number(),
   topSimilarity: z.number().nullable(),
+  evidencePool: evidencePoolSchema.default("repository"),
+  /** When using the network pool, the scan root used to resolve relative paths to full UNC (env or default). */
+  networkScanRootUsed: z.string().optional(),
 })
 
 export const tokenUsageSchema = z.object({
@@ -163,6 +188,7 @@ export type RequestType = z.infer<typeof requestTypeSchema>
 export type Confidence = z.infer<typeof confidenceSchema>
 export type ConfidenceScore = z.infer<typeof confidenceScoreSchema>
 export type RetrievalMetadata = z.infer<typeof retrievalMetadataSchema>
+export type EvidencePool = z.infer<typeof evidencePoolSchema>
 export type TokenUsage = z.infer<typeof tokenUsageSchema>
 export type EvidenceSourceType = z.infer<typeof evidenceSourceTypeSchema>
 export type RequestInterpretation = z.infer<typeof requestInterpretationSchema>
@@ -175,6 +201,8 @@ export type EvidenceHit = z.infer<typeof evidenceHitSchema>
 export type UncertaintyItem = z.infer<typeof uncertaintyItemSchema>
 export type Responsibility = z.infer<typeof responsibilitySchema>
 export type ResponsePlan = z.infer<typeof responsePlanSchema>
+export type RankedCodeAsset = z.infer<typeof rankedCodeAssetSchema>
+export type CandidateDatasetPath = z.infer<typeof candidateDatasetPathSchema>
 export type CopilotResult = z.infer<typeof copilotResultSchema>
 export type EvidenceCorpus = z.infer<typeof evidenceCorpusSchema>
 

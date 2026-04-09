@@ -1,6 +1,6 @@
 "use client"
 
-import { useImperativeHandle, useRef, useState, forwardRef, useCallback } from "react"
+import { useImperativeHandle, useRef, useState, forwardRef, useCallback, useEffect } from "react"
 
 import { type RunCopilotActionState, runCopilotAction } from "@/app/actions/run-copilot"
 import { runBatchCopilotAction } from "@/app/actions/run-batch-copilot"
@@ -15,11 +15,14 @@ import { VerboseProvider, VerboseToggle } from "@/components/copilot/verbose-con
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { demoPrompts } from "@/lib/copilot/demo-prompts"
+import { dispatchNetworkCorpusRebuilt } from "@/lib/copilot/network-corpus-events"
 import { getMgaToken } from "@/lib/copilot/mga-token"
 import type { HistoryEntry, NewHistoryEntry } from "@/lib/copilot/query-history"
 import type { DetectedQuestion } from "@/lib/copilot/question-detection"
 import type { BatchCopilotState } from "@/lib/server/copilot/batch-types"
 import type { TokenUsage } from "@/lib/server/copilot/schemas"
+
+const SCAN_ROOT_STORAGE_KEY = "regulatory-response-evidence-scan-root"
 
 function formatTokenCount(count: number): string {
   if (count >= 1000) {
@@ -187,6 +190,34 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
   const [exporting, setExporting] = useState(false)
   const [rebuilding, setRebuilding] = useState(false)
   const [rebuildResult, setRebuildResult] = useState<{ documentCount: number; embeddingCount: number } | null>(null)
+  const [networkRebuilding, setNetworkRebuilding] = useState(false)
+  const [networkRebuildResult, setNetworkRebuildResult] = useState<{
+    documentCount: number
+    embeddingCount: number
+    scanRootUsed?: string
+  } | null>(null)
+  const [networkRebuildError, setNetworkRebuildError] = useState<string | null>(null)
+  const [networkScanRoot, setNetworkScanRoot] = useState("")
+
+  // Restore optional network scan path (mapped drive or UNC) for rebuild / ingest from the browser.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SCAN_ROOT_STORAGE_KEY)
+      if (saved) setNetworkScanRoot(saved)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  function persistNetworkScanRoot(value: string) {
+    setNetworkScanRoot(value)
+    try {
+      if (value.trim()) localStorage.setItem(SCAN_ROOT_STORAGE_KEY, value.trim())
+      else localStorage.removeItem(SCAN_ROOT_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+  }
 
   const hasResult = state.result !== null
   const evidenceCount = state.result?.evidence?.length ?? 0
@@ -249,6 +280,43 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
     }
   }
 
+  async function rebuildNetworkCorpus() {
+    setNetworkRebuilding(true)
+    setNetworkRebuildResult(null)
+    setNetworkRebuildError(null)
+
+    try {
+      const response = await fetch("/api/rebuild-network-corpus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scanRoot: networkScanRoot.trim() || undefined,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        const message = data.error ?? "Network rebuild failed"
+        setNetworkRebuildError(message)
+        console.error("Network corpus rebuild failed:", message)
+        return
+      }
+
+      setNetworkRebuildResult({
+        documentCount: data.documentCount ?? 0,
+        embeddingCount: data.embeddingCount ?? 0,
+        scanRootUsed: data.scanRootUsed,
+      })
+      dispatchNetworkCorpusRebuilt()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Network rebuild failed"
+      setNetworkRebuildError(message)
+      console.error("Network corpus rebuild failed:", error)
+    } finally {
+      setNetworkRebuilding(false)
+    }
+  }
+
   const handleRunPredictedQuestion = useCallback((predictedQuestion: string) => {
     setQuestion(predictedQuestion)
     const fd = new FormData()
@@ -270,8 +338,14 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
           samplePrompts={demoPrompts}
           setQuestion={setQuestion}
           onRebuild={rebuildCorpus}
+          onRebuildNetwork={rebuildNetworkCorpus}
           rebuildResult={rebuildResult}
           rebuilding={rebuilding}
+          networkRebuildResult={networkRebuildResult}
+          networkRebuilding={networkRebuilding}
+          networkRebuildError={networkRebuildError}
+          networkScanRoot={networkScanRoot}
+          onNetworkScanRootChange={persistNetworkScanRoot}
           detectedQuestions={detectedQuestions}
           setDetectedQuestions={setDetectedQuestions}
           onBatchSubmit={handleBatchSubmit}
@@ -334,7 +408,11 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
 
             {/* Evidence + Response Plan + Predictions in full-width tabs */}
             {(pending || hasResult) && (
-              <Tabs defaultValue="plan" className="w-full">
+              <Tabs
+                key={`${runKey}-${hasResult ? evidenceCount : "loading"}`}
+                defaultValue={evidenceCount > 0 ? "evidence" : "plan"}
+                className="w-full"
+              >
                 <TabsList className="results-tab-list">
                   <TabsTrigger value="plan" className="results-tab-trigger">
                     Response Plan
@@ -374,7 +452,11 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
                 </TabsContent>
 
                 <TabsContent value="evidence" className="results-tab-content">
-                  <EvidencePanel evidence={state.result?.evidence ?? []} pending={pending} />
+                  <EvidencePanel
+                    evidence={state.result?.evidence ?? []}
+                    pending={pending}
+                    retrievalMetadata={state.result?.retrievalMetadata ?? null}
+                  />
                 </TabsContent>
               </Tabs>
             )}

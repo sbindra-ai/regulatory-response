@@ -1,3 +1,5 @@
+import { PRODUCT_DISPLAY_NAME } from "@/lib/copilot/product-meta"
+
 export type ReadmeBrief = {
   id: "brief:product"
   title: string
@@ -13,7 +15,8 @@ function normalizeWhitespace(value: string): string {
 
 export function parseReadme(readmeContent: string): ReadmeBrief {
   const lines = readmeContent.split("\n")
-  const title = lines.find((line) => line.startsWith("# "))?.replace(/^#\s*/, "").trim() ?? "Regulatory Response Copilot"
+  const title =
+    lines.find((line) => line.startsWith("# "))?.replace(/^#\s*/, "").trim() ?? PRODUCT_DISPLAY_NAME
   const summaryLine =
     lines
       .slice(lines.findIndex((line) => line.startsWith("# ")) + 1)
@@ -27,6 +30,7 @@ export function parseReadme(readmeContent: string): ReadmeBrief {
     keywords: [
       "regulatory",
       "response",
+      "raise",
       "spa",
       "knowledge-search",
       "response-plan",
