@@ -1,29 +1,25 @@
 /*******************************************************************************
  * Bayer AG
- * Study            : 21810 A double-blind, randomized, placebo-controlled
+ * Study            : 21651 A double-blind, randomized, placebo-controlled
  *   multicenter study to investigate efficacy and safety of elinzanetant for
- *   the treatment of vasomotor symptoms over 52 weeks in postmenopausal women
+ *   the treatment of vasomotor symptoms over 26 weeks in postmenopausal women
  * Proj/Subst/GIAD  : 3427080 / BAY 3427080, ELINZANETANT BAY3427080 NK1-3 RA Vasomotor Symptoms
  *******************************************************************************
  *Name of program**************************************************************/
-   %iniprog(name = t_8_3_5_7_adlb_low     );
+   %iniprog(name = t_8_3_5_7_adlb_low    );
 /*
  * Purpose          : Treatment-emergent low laboratory abnormalities by laboratory category and treatment: number of subjects
- * Programming Spec : 21810_tlf_v1.0.docx
+ * Programming Spec : 
  * Validation Level : 1 - Verification by Review
- * SAS Version      : Linux 9.4
+ * SAS Version      : Linux 9.4     
  *******************************************************************************
  * Pre-conditions   :
  * Post-conditions  :
  * Comments         :
  *******************************************************************************
- * Author(s)        : emzah (Rakesh Muppidi) / date: 20OCT2023
- * Reference prog   : /var/swan/root/bhc/3427080/21652/stat/main01/dev/analysis/pgms/t_8_3_5_7_adlb_low.sas (emvsx (Phani Tata) / date: 02OCT2023)
+ * Author(s)        : emvsx (Phani Tata) / date: 30NOV2023
+ * Reference prog   : /var/swan/root/bhc/3427080/21652/stat/main01/val/analysis/pgms/t_8_3_5_7_adlb_low.sas (emvsx (Phani Tata) / date: 20NOV2023)
  ******************************************************************************/
-/* Changed by       : glimy (Victoria Aitken) / date: 18MAR2024
- * Reason           : removed records with missing aval
- ******************************************************************************/
-
 %macro sbgrp(cond=, arm=, label=);
 
 %load_ads_dat(
@@ -49,7 +45,7 @@ RUN;
 
 proc sort data = adlb   out=adlb3  ;
     by usubjid   paramn avisitn;
-    where avisitn ne . and aval ne .;
+    where avisitn ne . and aval ne . ;
 run;
 
 

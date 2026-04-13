@@ -382,7 +382,7 @@ export function QuestionForm({
                 type="text"
                 value={networkScanRoot}
                 onChange={(e) => onNetworkScanRootChange?.(e.target.value)}
-                placeholder="e.g. \\by-swanPRD\swan\root\bhc\3427080 or //by-swanPRD/swan/root/..."
+                placeholder="Paste the same UNC folder you ingest from, e.g. \\server\share\study\...\analysis"
                 autoComplete="off"
                 className="focus-ring w-full rounded-lg border border-border/70 bg-white px-3 py-2 font-mono text-[0.8125rem] text-foreground outline-none transition-colors focus:border-[#00BCFF]/50"
               />

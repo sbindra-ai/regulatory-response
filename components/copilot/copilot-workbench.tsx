@@ -65,12 +65,9 @@ type CopilotWorkbenchProps = {
 }
 
 export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbenchProps>(function CopilotWorkbench({ onSaveEntry, onClearActiveId }, ref) {
-  const [state, setState] = useState<RunCopilotActionState>({
-    ...initialRunCopilotActionState,
-    question: demoPrompts[0]?.question ?? "",
-  })
+  const [state, setState] = useState<RunCopilotActionState>(initialRunCopilotActionState)
   const [pending, setPending] = useState(false)
-  const [question, setQuestion] = useState(demoPrompts[0]?.question ?? "")
+  const [question, setQuestion] = useState("")
   const abortRef = useRef<AbortController | null>(null)
 
   // Batch state
@@ -247,7 +244,7 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = "copilot-report.pdf"
+      link.download = "copilot-response-plan-specification.pdf"
       link.click()
       URL.revokeObjectURL(url)
     } catch (error) {
@@ -410,7 +407,7 @@ export const CopilotWorkbench = forwardRef<CopilotWorkbenchHandle, CopilotWorkbe
             {(pending || hasResult) && (
               <Tabs
                 key={`${runKey}-${hasResult ? evidenceCount : "loading"}`}
-                defaultValue={evidenceCount > 0 ? "evidence" : "plan"}
+                defaultValue="plan"
                 className="w-full"
               >
                 <TabsList className="results-tab-list">

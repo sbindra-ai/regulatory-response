@@ -37,11 +37,13 @@ export function createNetworkReadmeBrief(scanRootDisplay: string): ReadmeBrief {
     path: "README.md",
     title: "Network share evidence index",
     summary: `Vector-indexed files scanned from ${scanRootDisplay}.`,
-    keywords: ["network", "share", "samba", "evidence", "vector", "regulatory"],
+    keywords: ["network", "share", "samba", "evidence", "vector", "regulatory", "documents", "macros", "programs"],
     sourceText: [
       "# Network share evidence",
       "",
-      `Documents under this corpus were ingested from: ${scanRootDisplay}`,
+      `Files under this corpus were ingested from: ${scanRootDisplay}`,
+      "",
+      "Recommended layout (same idea as the bundled repo): **documents/** (PDF, Define-XML, specs), **macros/** (macro .sas), **programs/** (TLF and listing .sas). The indexer walks the whole tree.",
       "",
       "Select Network share as the evidence source in the copilot after running npm run ingest:network.",
     ].join("\n"),
@@ -76,6 +78,11 @@ function absolutePathForStorage(absPath: string): string {
     return norm.replace(/\//g, "\\")
   }
   return norm
+}
+
+/** Persist the ingest root alongside documents so retrieval never guesses a share path. */
+export function scanRootForCorpusStorage(root: string): string {
+  return absolutePathForStorage(normalize(root.trim()))
 }
 
 function normalizeRel(root: string, absPath: string): string {
@@ -336,6 +343,7 @@ export async function buildNetworkEvidenceCorpus(scanRoot: string): Promise<Evid
     datasets: [],
     programs: [],
     documents,
+    networkScanRoot: scanRootForCorpusStorage(scanRoot),
   }
 }
 

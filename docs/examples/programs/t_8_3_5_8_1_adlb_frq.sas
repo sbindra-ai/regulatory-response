@@ -1,27 +1,27 @@
 /*******************************************************************************
  * Bayer AG
- * Study            : 21810 A double-blind, randomized, placebo-controlled
+ * Study            : 21651 A double-blind, randomized, placebo-controlled
  *   multicenter study to investigate efficacy and safety of elinzanetant for
- *   the treatment of vasomotor symptoms over 52 weeks in postmenopausal women
+ *   the treatment of vasomotor symptoms over 26 weeks in postmenopausal women
  * Proj/Subst/GIAD  : 3427080 / BAY 3427080, ELINZANETANT BAY3427080 NK1-3 RA Vasomotor Symptoms
  *******************************************************************************
  *Name of program**************************************************************/
-   %iniprog(name = t_8_3_5_8_1_adlb_frq);
+   %iniprog(name = t_8_3_5_8_1_adlb_frq );
 /*
  * Purpose          : Number of subjects by cumulative hepatic safety laboratory parameter category
- * Programming Spec : 21810_tlf_v1.0.docx
+ * Programming Spec : 
  * Validation Level : 2 - Independent programming
- * SAS Version      : Linux 9.4
+ * SAS Version      : Linux 9.4     
  *******************************************************************************
  * Pre-conditions   :
  * Post-conditions  :
  * Comments         :
  *******************************************************************************
- * Author(s)        : emzah (Rakesh Muppidi) / date: 21FEB2024
- * Reference prog   : /var/swan/root/bhc/3427080/21652/stat/main01/dev/analysis/pgms/t_8_3_5_8_1_adlb_frq.sas (emvsx (Phani Tata) / date: 19OCT2023)
+ * Author(s)        : emvsx (Phani Tata) / date: 30NOV2023
+ * Reference prog   : /var/swan/root/bhc/3427080/21652/stat/main01/val/analysis/pgms/t_8_3_5_8_1_adlb_frq.sas (emvsx (Phani Tata) / date: 03AUG2023)
  ******************************************************************************/
 
-   %macro par (par =  , ord =  , out =  , paramcd = , row = ) ;
+%macro par (par =  , ord =  , out =  , paramcd = , row = ) ;
 
 %load_ads_dat(adlb_view, adsDomain = adlb , adslWhere =  &saf_cond )
 %load_ads_dat(adsl_view , adsDomain = adsl , where =  &saf_cond )
@@ -31,7 +31,7 @@
 
 data adlb22 ;
     set adlb ;
-where paramcd in ( &par. )  and (ANL01FL="Y"  or avisitn in (500000,900000));
+where paramcd in ( &par. )  and ANL01FL="Y"  ;
 length avist $50. ;
 if avisitn  > 5  then avist = "Post Baseline";
 if avisitn  = 5  then avist = "Baseline";
@@ -50,13 +50,8 @@ CRITT11   = ">=1.5";
 CRITT12   =   ">=2"  ;
 
  if avisitn  >= 5;
- if avisitn>5 then do;
-     if ady>1 and aval ne .;
- end;
   attrib   avist  label = "Visit";
 run;
-
-
 proc sort data = adlb22 out = Crit
      (keep = usubjid avisitn  &treat_var paramcd
      parcat1 avist paramn Crit: Crit1--Crit8 Crit11  Crit12  );
@@ -200,7 +195,6 @@ RUN;
 
 %mend  ;
 
-
 %par (par = %str("SGPTSP" ) , ord = %str( (1,4,5,6,7, 8  ) ) ,
       out = alt   ,
       paramcd = %str(ALT) ,
@@ -216,27 +210,19 @@ RUN;
     , paramcd = %str(ALT or AST),
       row = 3
     ) ;
-
 %par (par = %str("BILITOSP" ) , ord = %str( (1,3,  5,6   ) ) ,
       out = bil      ,
       paramcd = %str(Total bilirubin),
       row = 4 ) ;
-
-
 %par (par = %str("ALKPHOSP" ) , ord = %str( ( 2,3, 4    ) ) ,
       out = ALP      ,
       paramcd = %str(ALP),
       row = 5 ) ;
 
-
-
-%par (par = %str("PTINR" ) ,
-      ord = %str( ( 11,12  ) ) ,
+%par (par = %str("PTINR" ) ,   ord = %str( ( 11,12  ) ) ,
       out = ptn      ,
       paramcd = %str(INR),
       row = 6 ) ;
-
-
 proc sql noprint ;
     create table trt_cnt as
            select count( &treat_var ) as count ,  &treat_var
@@ -248,11 +234,9 @@ proc sql noprint ;
 
     select  count into : trt2 trimmed
            from trt_cnt
-           where  &treat_var = 9901 ;
+           where  &treat_var = 101 ;
     %put &trt1 &trt2;
 QUIT;
-
-
 data all;
     set all_alt
         all_ast
@@ -261,7 +245,7 @@ data all;
         all_alp
         all_ptn ;
     label str1 = "Elinzanetant 120mg (N=&trt1.)" ;
-    label str2 = "Placebo (N=&trt2.)" ;
+    label str2 = "Placebo - Elinzanetant 120mg (N=&trt2.)" ;
 
     if AVIST = "Baseline"  then vstrow = 1 ;
     if AVIST = "Post Baseline"  then vstrow = 2 ;

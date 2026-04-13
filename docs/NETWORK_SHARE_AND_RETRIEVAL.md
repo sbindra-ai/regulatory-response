@@ -57,6 +57,10 @@ This document records the **Samba / network-share corpus** feature, **retrieval 
 
 The repo includes a **placeholder** `data/copilot/evidence-corpus.network.json` (brief only) so **Network share** works immediately after clone. Replace it by running **`npm run ingest:network`** against your mapped path. If you delete the file, the server **falls back** to the same placeholder in memory and logs a **console warning** (no hard crash).
 
+### `networkScanRoot` in the network JSON
+
+Ingest now writes **`networkScanRoot`** on the corpus: the **exact directory** that was scanned. Retrieval uses this field (then `EVIDENCE_SCAN_ROOT` if set) to resolve legacy relative `path` values into full UNC paths. **Retrieval does not use a hardcoded share default**, so you do not get fabricated paths under the wrong parent folder. Rebuild the network index after upgrading, or set `EVIDENCE_SCAN_ROOT` to the same folder your index was built from if the JSON has no `networkScanRoot` yet.
+
 ---
 
 ## Ranking mode (two options)

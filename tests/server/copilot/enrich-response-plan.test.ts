@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import { filterRankedCodeAssetsForPlan } from "@/lib/copilot/ranked-code-plan"
-import { buildRankedCodeAssets, macrosDefinedInSas, mergeResponsePlanWithEvidence } from "@/lib/server/copilot/enrich-response-plan"
+import {
+  buildCandidateDatasetPaths,
+  buildRankedCodeAssets,
+  macrosDefinedInSas,
+  mergeResponsePlanWithEvidence,
+} from "@/lib/server/copilot/enrich-response-plan"
 import type { EvidenceHit, RequestInterpretation, ResponsePlan } from "@/lib/server/copilot/schemas"
 
 function doc(
@@ -78,7 +83,7 @@ describe("buildRankedCodeAssets", () => {
 })
 
 describe("mergeResponsePlanWithEvidence rankedCodeAssets", () => {
-  it("applies plan filter so merged assets are capped and relevance-trimmed", () => {
+  it("applies plan filter so merged assets are capped and can include nearby scores when few strong hits exist", () => {
     const built = buildRankedCodeAssets(
       Array.from({ length: 30 }, (_, i) => ({
         document: doc(`p${i}`, `X:/x${i}.sas`, "data _null_;", "program"),
@@ -92,7 +97,109 @@ describe("mergeResponsePlanWithEvidence rankedCodeAssets", () => {
     )
     const filtered = filterRankedCodeAssetsForPlan(built)
     expect(filtered.length).toBeLessThanOrEqual(built.length)
-    expect(filtered.every((r) => r.relevancePercent >= 88)).toBe(true)
+    expect(filtered[0].relevancePercent).toBe(100)
+    expect(filtered.length).toBeGreaterThan(1)
+  })
+})
+
+describe("buildCandidateDatasetPaths", () => {
+  it("links datasets to Define-XML metadata paths via document.datasetNames", () => {
+    const datasetDoc: EvidenceHit["document"] = {
+      id: "dataset:ADSL",
+      title: "ADSL dataset metadata",
+      sourceType: "dataset",
+      path: "docs/examples/define.xml",
+      summary: "ADSL metadata from Define-XML.",
+      keywords: ["adsl"],
+      datasetNames: ["ADSL"],
+      outputFamilies: [],
+      sourceText: "ADSL",
+      embedding: null,
+    }
+    const hits: EvidenceHit[] = [
+      {
+        document: datasetDoc,
+        score: 90,
+        matchedTerms: [],
+        retrievalReason: "",
+        vectorSimilarity: null,
+        keywordScore: 0,
+        hybridRank: 1,
+      },
+    ]
+    const rows = buildCandidateDatasetPaths(["ADSL"], hits)
+    expect(rows.some((r) => r.dataset === "ADSL" && r.path.endsWith("define.xml"))).toBe(true)
+  })
+
+  it("lists only derivation SAS (d_* / d-*) plus transports and define.xml — not t_/f_ programs", () => {
+    const mk = (id: string, path: string, datasetNames: string[]): EvidenceHit => ({
+      document: {
+        id,
+        title: id,
+        sourceType: "program",
+        path,
+        summary: "Summary text here.",
+        keywords: [],
+        datasetNames,
+        outputFamilies: [],
+        sourceText: "data _null_; run;",
+        embedding: null,
+      },
+      score: 80,
+      matchedTerms: [],
+      retrievalReason: "test",
+      vectorSimilarity: null,
+      keywordScore: 0,
+      hybridRank: 1,
+    })
+    const hits: EvidenceHit[] = [
+      mk("t1", "repo/t_adae_week12.sas", ["ADSL"]),
+      mk("d1", "repo/d_adsl.sas", ["ADSL"]),
+      mk("f1", "repo/f_10_2_8_2_adlb_inr.sas", ["ADSL"]),
+      mk("x1", "study/adsl.xpt", ["ADSL"]),
+    ]
+    const rows = buildCandidateDatasetPaths(["ADSL"], hits)
+    expect(rows.map((r) => r.path)).toContain("repo/d_adsl.sas")
+    expect(rows.map((r) => r.path)).toContain("study/adsl.xpt")
+    expect(rows.some((r) => r.path.includes("t_adae"))).toBe(false)
+    expect(rows.some((r) => r.path.includes("f_10"))).toBe(false)
+  })
+
+  it("replaces sibling derivation jobs (d_adlb_*) with canonical docs/examples/programs/d_adlb.sas", () => {
+    const hits: EvidenceHit[] = [
+      {
+        document: {
+          id: "dili",
+          title: "dili",
+          sourceType: "program",
+          path: "repo/d_adlb_dili_tab.sas",
+          summary: "",
+          keywords: [],
+          datasetNames: ["ADLB"],
+          outputFamilies: [],
+          sourceText: "data adlb;",
+          embedding: null,
+        },
+        score: 80,
+        matchedTerms: [],
+        retrievalReason: "",
+        vectorSimilarity: null,
+        keywordScore: 0,
+        hybridRank: 1,
+      },
+    ]
+    const rows = buildCandidateDatasetPaths(["ADLB"], hits)
+    expect(rows.map((r) => r.path)).toContain("docs/examples/programs/d_adlb.sas")
+    expect(rows.some((r) => r.path.includes("dili_tab"))).toBe(false)
+  })
+
+  it("backfills canonical derivation path for each recommended dataset when evidence has no derivation SAS", () => {
+    const hits: EvidenceHit[] = []
+    const rows = buildCandidateDatasetPaths(["ADSL", "ADLB", "ADAE"], hits)
+    const paths = rows.map((r) => r.path)
+    expect(paths).toContain("docs/examples/programs/d_adsl.sas")
+    expect(paths).toContain("docs/examples/programs/d_adlb.sas")
+    expect(paths).toContain("docs/examples/programs/d_adae.sas")
   })
 })
 

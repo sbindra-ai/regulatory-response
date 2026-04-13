@@ -12,10 +12,25 @@ export type PdfChunk = {
   keywords: string[]
 }
 
-type PdfFileConfig = {
+export type PdfFileConfig = {
   path: string
   sourceType: EvidenceSourceType
   label: string
+}
+
+/** Map a repo-relative PDF path to evidence metadata (used when ingesting docs/examples/documents/*.pdf). */
+export function inferPdfFileConfig(relativePosixPath: string): PdfFileConfig {
+  const file = relativePosixPath.split("/").pop() ?? relativePosixPath
+  const lower = file.toLowerCase()
+  const label = file.replace(/\.pdf$/i, "")
+  let sourceType: EvidenceSourceType = "network-file"
+  if (lower.includes("statistical") && lower.includes("analysis")) sourceType = "sap-section"
+  else if (lower.includes("tlf")) sourceType = "tlf-spec"
+  else if (lower.includes("ads") && lower.includes("spec")) sourceType = "ads-spec"
+  else if (lower.includes("adrg")) sourceType = "adrg-section"
+  else if (lower.includes("fda")) sourceType = "fda-request"
+  else if (lower.includes("case") && lower.includes("level")) sourceType = "case-data"
+  return { path: relativePosixPath, sourceType, label }
 }
 
 export const PDF_FILE_CONFIGS: PdfFileConfig[] = [

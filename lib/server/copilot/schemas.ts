@@ -182,6 +182,8 @@ export const evidenceCorpusSchema = z.object({
   datasets: z.array(defineDatasetSchema),
   programs: z.array(sasProgramSchema),
   documents: z.array(evidenceDocumentSchema),
+  /** Set for network corpora: the directory that was scanned at ingest (joins legacy relative `path` values correctly). */
+  networkScanRoot: z.string().optional(),
 })
 
 export type RequestType = z.infer<typeof requestTypeSchema>

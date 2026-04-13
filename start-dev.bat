@@ -2,19 +2,22 @@
 setlocal EnableExtensions EnableDelayedExpansion
 title RAISE - Dev Server
 
-:: Run from repo root (same folder as this .bat)
+:: Always run from this repo root (folder containing this .bat)
 cd /d "%~dp0"
+if not exist "package.json" (
+    echo ERROR: package.json not found. This script must live in the regulatory-response repo root.
+    echo Current directory: %CD%
+    pause
+    exit /b 1
+)
 
-:: ── Resolve Node.js (no system install required if portable is present) ─────
-:: Option A — set before running this file, e.g.:
-::   set PORTABLE_NODE_DIR=C:\tools\node-v22.14.0-win-x64
-:: Option B — extract the official Windows x64 zip so you have:
-::   <repo>\node\node-v22.14.0-win-x64\node.exe
-::   Download: https://nodejs.org/dist/v22.14.0/node-v22.14.0-win-x64.zip
+:: Optional: force dependency install — start-dev.bat install
+set "DO_INSTALL=0"
+if /i "%~1"=="install" set "DO_INSTALL=1"
+if defined FORCE_NPM_INSTALL set "DO_INSTALL=1"
 
+:: ── Resolve Node.js (portable under .\node\ or PATH) ─────────────────────────
 set "NODE_DIR="
-set "USE_SYSTEM_NODE="
-
 if defined PORTABLE_NODE_DIR set "NODE_DIR=%PORTABLE_NODE_DIR%"
 if not defined NODE_DIR if defined NODE_HOME set "NODE_DIR=%NODE_HOME%"
 
@@ -33,33 +36,33 @@ if not defined NODE_DIR (
 :node_dir_done
 
 if defined NODE_DIR (
-    if not exist "%NODE_DIR%\node.exe" (
+    if not exist "!NODE_DIR!\node.exe" (
         echo ERROR: NODE_DIR is set but node.exe was not found:
-        echo   %NODE_DIR%\node.exe
+        echo   !NODE_DIR!\node.exe
         pause
         exit /b 1
     )
-    if not exist "%NODE_DIR%\npm.cmd" (
-        echo ERROR: npm.cmd not found next to node.exe. Use the official Node Windows zip, not only node.exe.
-        echo   Expected: %NODE_DIR%\npm.cmd
+    if not exist "!NODE_DIR!\npm.cmd" (
+        echo ERROR: npm.cmd not found next to node.exe. Use the official Node Windows zip.
+        echo   Expected: !NODE_DIR!\npm.cmd
         pause
         exit /b 1
     )
-    set "PATH=%NODE_DIR%;%PATH%"
+    set "PATH=!NODE_DIR!;%PATH%"
     echo.
-    echo  Regulatory AI for Structured Execution (RAISE) - Development Server
-    echo  Using Node.js: %NODE_DIR%\node.exe
+    echo  Regulatory AI for Structured Execution (RAISE^) - Development Server
+    echo  Using Node.js: !NODE_DIR!\node.exe
     echo.
-    goto :run_npm
+    goto :have_node
 )
 
 where node >nul 2>&1
-if %ERRORLEVEL% equ 0 (
+if !errorlevel! equ 0 (
     echo.
-    echo  Regulatory AI for Structured Execution (RAISE) - Development Server
+    echo  Regulatory AI for Structured Execution (RAISE^) - Development Server
     echo  Using Node.js from PATH ^(no portable folder under .\node\^)
     echo.
-    goto :run_npm
+    goto :have_node
 )
 
 echo ERROR: Node.js was not found.
@@ -74,27 +77,42 @@ echo.
 pause
 exit /b 1
 
-:run_npm
-:: ── Step 1: Install dependencies ───────────────────────────────────────────
+:have_node
+:: ── Dependencies: install only when missing or forced ────────────────────────
+if "!DO_INSTALL!"=="1" goto :do_install
+if not exist "node_modules\next" (
+    echo node_modules missing or incomplete — running npm install...
+    goto :do_install
+)
+echo Dependencies present ^(node_modules\next found^). Skipping npm install.
+echo To reinstall: run   start-dev.bat install   or set FORCE_NPM_INSTALL=1
+echo.
+goto :start_dev
+
+:do_install
 echo ==========================================================
-echo  Step 1/2: Installing dependencies ^(npm install^)...
+echo  Installing dependencies ^(npm install^)...
 echo ==========================================================
 call npm install
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: npm install failed. Check the output above.
     pause
     exit /b 1
 )
-
-:: ── Step 2: Start the dev server ────────────────────────────────────────────
 echo.
+
+:start_dev
 echo ==========================================================
-echo  Step 2/2: Starting Next.js dev server ^(npm run dev^)...
+echo  Starting Next.js dev server ^(npm run dev^)...
 echo  Open http://localhost:3000 in your browser.
+echo  Press Ctrl+C to stop the server.
 echo ==========================================================
 echo.
 call npm run dev
 
+echo.
+echo Server stopped ^(Ctrl+C or process ended^).
 pause
 endlocal
+exit /b 0

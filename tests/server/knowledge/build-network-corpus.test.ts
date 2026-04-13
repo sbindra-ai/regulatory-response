@@ -51,6 +51,7 @@ describe("build-network-corpus", () => {
 
     const corpus = await buildNetworkEvidenceCorpus(dir)
 
+    expect(pathsEqual(corpus.networkScanRoot ?? "", dir)).toBe(true)
     expect(corpus.documents[0].sourceType).toBe("brief")
     expect(corpus.documents[0].id).toBe("brief:product")
     expect(corpus.datasets).toEqual([])

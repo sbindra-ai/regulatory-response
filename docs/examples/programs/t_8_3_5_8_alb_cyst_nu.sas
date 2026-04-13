@@ -1,24 +1,27 @@
 /*******************************************************************************
  * Bayer AG
- * Study            : 21810 A double-blind, randomized, placebo-controlled
+ * Study            : 21651 A double-blind, randomized, placebo-controlled
  *   multicenter study to investigate efficacy and safety of elinzanetant for
- *   the treatment of vasomotor symptoms over 52 weeks in postmenopausal women
+ *   the treatment of vasomotor symptoms over 26 weeks in postmenopausal women
  * Proj/Subst/GIAD  : 3427080 / BAY 3427080, ELINZANETANT BAY3427080 NK1-3 RA Vasomotor Symptoms
  *******************************************************************************
  *Name of program**************************************************************/
-   %iniprog(name = t_8_3_5_8_alb_cyst_nu);
+   %iniprog(name =  t_8_3_5_8_alb_cyst_nu  );
 /*
- * Purpose          : Table: Number of subjects fulfilling the liver injury criteria  (SAF)
+ * Purpose          :Table: Number of subjects fulfilling the liver injury criteria  (SAF)
  * Programming Spec :
- * Validation Level : 2 - Verification by Double Programming
+ * Validation Level :2 - Verification by Double Programming
  * SAS Version      : Linux 9.4
  *******************************************************************************
  * Pre-conditions   :
  * Post-conditions  :
  * Comments         :
  *******************************************************************************
- * Author(s)        : emzah (Rakesh Muppidi) / date: 21FEB2024
- * Reference prog   : /var/swan/root/bhc/3427080/21651/stat/main01/dev/analysis/pgms/t_8_3_5_8_alb_cyst_nu.sas (emvsx (Phani Tata) / date: 07DEC2023)
+ * Author(s)        : emvsx (Phani Tata) / date: 07DEC2023
+ * Reference prog   :
+ ******************************************************************************/
+/* Changed by       : emvsx (Phani Tata) / date: 21FEB2024
+ * Reason           : Updated table as per req
  ******************************************************************************/
 
 *Load datasets;
@@ -30,11 +33,12 @@
   , where  = Parcat1 = "CLOSE LIVER OBSERVATION CASE REVIEW (V1.0)"
              and paramcd = "CLB105"
 )
+
 %load_ads_dat(adsl_view , adsDomain = adsl , where =  &saf_cond );
 
 %extend_data(indat = adqs_view , outdat = adqs  )
 %extend_data(indat = adsl_view  , outdat = adsl) ;
-*------------------------------Prepare data as needed-------------------------------------------;
+
 proc sort data = sp.ce out = ce (keep = usubjid cedtc  ) ;
     by usubjid cedtc;
 run;
@@ -62,16 +66,14 @@ RUN;
 
 data adqs22 ;
   set adqs  ;
-   critfln = 0 ;
+  if Avalc = "No" then critfln = 3 ;
 run;
-
-
 data adqs ;
    set adqs  ;
 
    if Avalc = "No" then critfln = 1;
    else if Avalc  = "Yes" then critfln = 2;
-   else  critfln = 3 ;
+   else  critfln = 3 ; ;
 
    Format critfln _ynm.;
    Label  paramcd = ' ';
@@ -127,8 +129,8 @@ data _stat0__1 (rename = (_cptog1_n1 = _cptog1   _cptog1_n2 = _cptog2 ) );
     length _cptog1_n1 _cptog1_n2 $200. ;
     set _stat0;
 
-    _cptog1_n1  = cat( substr(_cptog1  , 1 , 10) , cat (' (' ,strip(substr(_cptog1  , 11 , 6 )), ')'  ) ) ;
-    _cptog1_n2  = cat( substr(_cptog2  , 1 , 10) , cat (' (' ,strip(substr(_cptog2  , 11 , 6 )), ')'  ) ) ;
+    _cptog1_n1  = cat( substr(_cptog1  , 1 , 10 ) , cat (' (' ,strip(substr(_cptog1  , 11 , 6 )) , ')'  )  ) ;
+    _cptog1_n2  = cat( substr(_cptog2  , 1 , 1 ) , cat (' (' ,strip(substr(_cptog2  , 2 , 6 )), ')'  ) ) ;
 
  drop _cptog1    _cptog2          ;
 RUN;

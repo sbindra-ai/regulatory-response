@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Bayer AG
- * Study            : 21810 A double-blind, randomized, placebo-controlled
+ * Study            : 21651 A double-blind, randomized, placebo-controlled
  *   multicenter study to investigate efficacy and safety of elinzanetant for
- *   the treatment of vasomotor symptoms over 52 weeks in postmenopausal women
+ *   the treatment of vasomotor symptoms over 26 weeks in postmenopausal women
  * Proj/Subst/GIAD  : 3427080 / BAY 3427080, ELINZANETANT BAY3427080 NK1-3 RA Vasomotor Symptoms
  *******************************************************************************
  *Name of program**************************************************************/
@@ -10,18 +10,15 @@
 /*
  * Purpose          : LB test plot by subject
  * Programming Spec :
- * Validation Level : 1 - Verification by review
+ * Validation Level : 2 - Double programming
  * SAS Version      : Linux 9.4
  *******************************************************************************
  * Pre-conditions   :
  * Post-conditions  :
  * Comments         :
  *******************************************************************************
- * Author(s)        : emvsx (Phani Tata) / date: 01MAR2024
- * Reference prog   : /var/swan/root/bhc/3427080/21651/stat/main01/val/analysis/pgms/f_10_2_8_2_adlb_over.sas (emvsx (Phani Tata) / date: 21FEB2024)
- ******************************************************************************/
-/* Changed by       : glimy (Victoria Aitken) / date: 11MAR2024
- * Reason           : Updated to take first CE date
+ * Author(s)        : emvsx (Phani Tata) / date: 07MAR2024
+ * Reference prog   : /var/swan/root/bhc/3427080/21810/stat/main01/val/analysis/pgms/f_10_2_8_2_adlb_over.sas (emvsx (Phani Tata) / date: 21FEB2024)
  ******************************************************************************/
 
 %LET mosto_param_class = &treat_arm_a. ;
@@ -95,8 +92,8 @@ DATA adlb_vars;
        anrhi3   = anrhi/anrhi*3;
        end ;
    END;
-   if not missing(aval) or not missing (anrhi)  then  value =  aval/anrhi ;
-   if value >= 3 then Flag = 1 ;
+   value =  aval/anrhi ;
+   if aval/anrhi >= 3 then Flag = 1 ;
    LABEL anrhi1 = 'ULN'       anrhi2 = '2xULN'      anrhi3 = '3xULN'
          ady    = 'Days'
          sttp1  = 'First dose of double blind'

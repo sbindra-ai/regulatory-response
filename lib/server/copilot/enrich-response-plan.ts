@@ -32,6 +32,73 @@ function isSasCodePath(path: string): boolean {
   return /\.sas$/i.test(path)
 }
 
+/**
+ * SAS used to **build** ADaM datasets (derivation jobs: `d_adsl.sas`, `d-adsl.sas`, etc.).
+ * Excludes TLFs/listings (`t_*`, `f_*`, `l_*`, …) that only **use** datasets.
+ */
+function isDatasetDerivationProgramPath(path: string): boolean {
+  if (!/\.sas$/i.test(path)) return false
+  const base = basename(path).replace(/\.sas$/i, "")
+  return /^d[._-]/i.test(base)
+}
+
+/** Paths eligible for "candidate dataset" rows: transports, Define-XML, or derivation SAS only. */
+function isEligibleDatasetCandidatePath(path: string): boolean {
+  const p = path.replace(/\\/g, "/")
+  if (/\.(sas7bdat|xpt)$/i.test(p)) return true
+  if (/define\.xml$/i.test(p)) return true
+  if (/\.sas$/i.test(p)) return isDatasetDerivationProgramPath(p)
+  return false
+}
+
+/** Primary derivation job name for ADaM-style datasets: `d_adsl.sas`, `d_adae.sas`, … */
+function canonicalDerivationProgramBasename(datasetUpper: string): string {
+  return `d_${datasetUpper.trim().toLowerCase()}.sas`
+}
+
+function canonicalRepoDerivationProgramPath(datasetUpper: string): string {
+  return `docs/examples/programs/${canonicalDerivationProgramBasename(datasetUpper)}`
+}
+
+/**
+ * Chooses derivation SAS paths for export: prefer exact `d_<ds>.sas`; replace sibling jobs
+ * (`d_adlb_dili_tab.sas`) with the canonical repo path; backfill canonical when no derivation hit.
+ */
+function resolveDerivationAndSupportPaths(
+  datasetUpper: string,
+  pathsFromEvidence: Set<string>,
+): string[] {
+  const u = datasetUpper.trim().toUpperCase()
+  const canonicalName = canonicalDerivationProgramBasename(u)
+  const canonicalPath = canonicalRepoDerivationProgramPath(u)
+  const all = [...pathsFromEvidence]
+  const derivation = all.filter((p) => isDatasetDerivationProgramPath(p))
+  const support = all.filter((p) => !isDatasetDerivationProgramPath(p))
+
+  const baseLower = (p: string) => basename(p.replace(/\\/g, "/")).toLowerCase()
+
+  const exactCanonical = derivation.filter((p) => baseLower(p) === canonicalName)
+  if (exactCanonical.length > 0) {
+    return [...new Set([...exactCanonical.sort((a, b) => a.localeCompare(b)), ...support])].sort((a, b) =>
+      a.localeCompare(b),
+    )
+  }
+
+  const relatedPrefix = `d_${u.toLowerCase()}_`
+  const hasRelatedDerivation = derivation.some((p) => baseLower(p).startsWith(relatedPrefix))
+  if (hasRelatedDerivation) {
+    return [...new Set([canonicalPath, ...support])].sort((a, b) => a.localeCompare(b))
+  }
+
+  if (derivation.length > 0) {
+    return [...new Set([...derivation.sort((a, b) => a.localeCompare(b)), ...support])].sort((a, b) =>
+      a.localeCompare(b),
+    )
+  }
+
+  return [...new Set([canonicalPath, ...support])].sort((a, b) => a.localeCompare(b))
+}
+
 function isSasEvidenceHit(hit: EvidenceHit): boolean {
   const { document } = hit
   if (document.sourceType === "program") return true
@@ -55,14 +122,20 @@ export function buildCandidateDatasetPaths(
     for (const hit of evidence) {
       const pNorm = hit.document.path.replace(/\\/g, "/")
       if (!pNorm) continue
+      const docPath = hit.document.path
+      const docDatasets = hit.document.datasetNames.map((x) => x.trim().toUpperCase()).filter(Boolean)
+      if (docDatasets.includes(u) && isEligibleDatasetCandidatePath(docPath)) {
+        paths.add(docPath)
+      }
       const base = basename(pNorm).toUpperCase().replace(/\.[^.]+$/, "")
       const pu = pNorm.toUpperCase()
       if (pu.includes(u) || base === u || base.startsWith(`${u}.`) || pu.includes(`${u}.`)) {
-        paths.add(hit.document.path)
+        if (isEligibleDatasetCandidatePath(docPath)) paths.add(docPath)
       }
     }
 
-    for (const path of [...paths].sort((a, b) => a.localeCompare(b))) {
+    const orderedPaths = resolveDerivationAndSupportPaths(u, paths)
+    for (const path of orderedPaths) {
       const key = `${u}::${path.replace(/\\/g, "/")}`
       if (seen.has(key)) continue
       seen.add(key)

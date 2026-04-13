@@ -19,9 +19,18 @@ import type { RetrievalStrategy } from "@/lib/server/copilot/retrieve-evidence"
 
 export type CopilotOptions = {
   evidencePool?: EvidencePool
+  /** When set, retrieval returns at most this many hits (skips SAS backfill expansion). */
+  evidenceLimit?: number
   maxTokens?: number
   retrievalStrategy?: RetrievalStrategy
   temperature?: number
+}
+
+function evidenceLimitFromEnv(): number | undefined {
+  const raw = process.env.COPILOT_EVIDENCE_LIMIT?.trim()
+  const n = raw ? Number.parseInt(raw, 10) : Number.NaN
+  if (Number.isFinite(n) && n > 0) return Math.min(n, 96)
+  return undefined
 }
 
 export async function runCopilot(question: string, options?: CopilotOptions): Promise<CopilotResult> {
@@ -51,6 +60,7 @@ export async function runCopilot(question: string, options?: CopilotOptions): Pr
     const { evidence, retrievalMetadata } = await retrieveEvidence({
       evidencePool: options?.evidencePool ?? "repository",
       interpretation,
+      limit: options?.evidenceLimit ?? evidenceLimitFromEnv(),
       precomputedEmbeddings: queryEmbeddings,
       question: normalizedQuestion,
       retrievalStrategy: options?.retrievalStrategy ?? "hybrid",

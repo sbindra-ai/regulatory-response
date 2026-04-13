@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Bayer AG
- * Study            : 21810 A double-blind, randomized, placebo-controlled
+ * Study            : 21651 A double-blind, randomized, placebo-controlled
  *   multicenter study to investigate efficacy and safety of elinzanetant for
- *   the treatment of vasomotor symptoms over 52 weeks in postmenopausal women
+ *   the treatment of vasomotor symptoms over 26 weeks in postmenopausal women
  * Proj/Subst/GIAD  : 3427080 / BAY 3427080, ELINZANETANT BAY3427080 NK1-3 RA Vasomotor Symptoms
  *******************************************************************************
  *Name of program**************************************************************/
@@ -10,7 +10,7 @@
 /*
  * Purpose          : Figure: INR over time in subject <USUBJID> of <<treatment group>> (SAF)
  * Programming Spec :
- * Validation Level : 1 - Verification by review
+ * Validation Level : 2 - Double programming
  * SAS Version      : Linux 9.4
  *******************************************************************************
  * Pre-conditions   :
@@ -18,10 +18,7 @@
  * Comments         :
  *******************************************************************************
  * Author(s)        : emvsx (Phani Tata) / date: 21FEB2024
- * Reference prog   : /var/swan/root/bhc/3427080/21651/stat/main01/val/analysis/pgms/f_10_2_8_2_adlb_inr.sas (emvsx (Phani Tata) / date: 21FEB2024)
- ******************************************************************************/
-/* Changed by       : glimy (Victoria Aitken) / date: 11MAR2024
- * Reason           : updated validation level in header
+ * Reference prog   : /var/swan/root/bhc/3427080/21810/stat/main01/val/analysis/pgms/f_10_2_8_2_adlb_inr.sas (emvsx (Phani Tata) / date: 21FEB2024)
  ******************************************************************************/
 
 %macro over (par = , yref   = , yrefl  =  , ylabel =   , out = ) ;

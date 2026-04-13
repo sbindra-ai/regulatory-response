@@ -11,344 +11,435 @@ type CopilotReportProps = {
   result: CopilotResult
 }
 
-const BLACK = "#1a1a1a"
-const DARK = "#333333"
-const GREY = "#666666"
-const LIGHT_GREY = "#999999"
-const RULE = "#cccccc"
-const ACCENT = "#0a7ccf"
-const TINT = "#f5f5f5"
+const BAYER_DARK = "#10384F"
+const BAYER_BLUE = "#00BCFF"
+const BLACK = "#0f172a"
+const BODY = "#1e293b"
+const MUTED = "#64748b"
+const BORDER = "#cbd5e1"
+const HEADER_BG = "#f1f5f9"
+const TINT = "#f8fafc"
 
 const bayerLogoPng = readFileSync(resolve(process.cwd(), "public/logos/Logo_Bayer.png"))
 
 const s = StyleSheet.create({
   page: {
-    paddingTop: 48,
-    paddingBottom: 56,
-    paddingHorizontal: 54,
-    fontFamily: "Times-Roman",
-    fontSize: 10.5,
-    color: DARK,
-    lineHeight: 1.55,
-  },
-  // Header
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  logo: { width: 28, height: 28, marginRight: 10 },
-  headerTitle: { fontSize: 15, fontFamily: "Times-Bold", color: BLACK, letterSpacing: 0.3 },
-  headerSub: { fontSize: 8, color: LIGHT_GREY, marginTop: 1, fontFamily: "Times-Roman" },
-  headerRule: { height: 0.75, backgroundColor: ACCENT, marginTop: 10, marginBottom: 20 },
-  // Sections
-  sectionTitle: {
-    fontSize: 12,
-    fontFamily: "Times-Bold",
-    color: BLACK,
-    marginBottom: 4,
-    marginTop: 18,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  rule: { height: 0.5, backgroundColor: RULE, marginBottom: 10 },
-  // Question block
-  questionBlock: {
-    backgroundColor: TINT,
-    borderLeftWidth: 2.5,
-    borderLeftColor: ACCENT,
-    padding: 10,
-    paddingLeft: 12,
-    marginBottom: 4,
-  },
-  questionText: { fontSize: 10.5, lineHeight: 1.6, fontFamily: "Times-Italic" },
-  // Key-value fields
-  fieldRow: { flexDirection: "row", marginBottom: 3, alignItems: "flex-start" },
-  fieldLabel: {
-    fontFamily: "Times-Bold",
+    paddingTop: 42,
+    paddingBottom: 52,
+    paddingHorizontal: 44,
+    fontFamily: "Helvetica",
     fontSize: 9,
-    color: GREY,
-    width: 110,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
+    color: BODY,
+    lineHeight: 1.45,
   },
-  fieldValue: { fontSize: 10.5, flex: 1, fontFamily: "Times-Roman" },
-  // Chips
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 1, marginBottom: 4 },
-  chip: {
+  /* --- Cover / document control (TLF spec style) --- */
+  docHeader: {
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginBottom: 16,
+  },
+  docHeaderTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+    backgroundColor: HEADER_BG,
+  },
+  logo: { width: 36, height: 36, marginRight: 12 },
+  docTitleBlock: { flex: 1 },
+  docTitle: {
+    fontSize: 13,
+    fontFamily: "Helvetica-Bold",
+    color: BAYER_DARK,
+    marginBottom: 2,
+  },
+  docSubtitle: { fontSize: 8.5, color: MUTED, marginBottom: 6 },
+  docMetaRow: { flexDirection: "row", borderTopWidth: 0.5, borderTopColor: BORDER },
+  docMetaLabel: {
+    width: "28%",
+    fontFamily: "Helvetica-Bold",
+    fontSize: 8,
+    color: MUTED,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
     backgroundColor: TINT,
-    borderWidth: 0.5,
-    borderColor: RULE,
-    paddingVertical: 2,
+    borderRightWidth: 0.5,
+    borderRightColor: BORDER,
+  },
+  docMetaValue: { flex: 1, fontSize: 8.5, paddingVertical: 5, paddingHorizontal: 8, color: BLACK },
+  /* --- Numbered sections --- */
+  sectionNum: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: BAYER_DARK,
+    marginTop: 14,
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottomWidth: 1.5,
+    borderBottomColor: BAYER_BLUE,
+  },
+  sectionIntro: { fontSize: 8, color: MUTED, marginBottom: 6, fontStyle: "italic" },
+  /* --- Request text box --- */
+  requestBox: {
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: TINT,
+    padding: 10,
+    marginBottom: 4,
+  },
+  requestText: { fontSize: 9.5, lineHeight: 1.5, color: BLACK },
+  /* --- Specification tables --- */
+  table: { borderWidth: 1, borderColor: BORDER, marginBottom: 8 },
+  tableHeaderRow: {
+    flexDirection: "row",
+    backgroundColor: HEADER_BG,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+  },
+  tableRow: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: BORDER },
+  tableCell: { paddingVertical: 4, paddingHorizontal: 6, fontSize: 8.5 },
+  tableCellH: {
+    paddingVertical: 5,
     paddingHorizontal: 6,
     fontSize: 8,
-    fontFamily: "Times-Bold",
-    color: DARK,
-    letterSpacing: 0.3,
+    fontFamily: "Helvetica-Bold",
+    color: BAYER_DARK,
   },
-  // Evidence cards
-  evidenceCard: {
-    borderBottomWidth: 0.5,
-    borderBottomColor: RULE,
-    paddingVertical: 7,
-    paddingHorizontal: 2,
-  },
-  evidenceTitle: { fontFamily: "Times-Bold", fontSize: 10.5, color: BLACK },
-  evidenceBadge: {
-    fontSize: 7,
-    fontFamily: "Times-Bold",
-    color: LIGHT_GREY,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  evidenceReason: { fontFamily: "Times-Italic", fontSize: 9.5, color: GREY, marginTop: 2 },
-  evidencePath: { fontSize: 8, color: LIGHT_GREY, marginTop: 2, fontFamily: "Courier" },
-  // Bullet lists
-  bulletItem: { flexDirection: "row", marginBottom: 2 },
-  bullet: { width: 14, fontSize: 10.5, color: GREY },
-  bulletText: { flex: 1, fontSize: 10.5 },
-  // Uncertainty
-  uncertaintyCard: {
-    borderLeftWidth: 1.5,
-    borderLeftColor: RULE,
-    paddingLeft: 10,
+  colSpecLabel: { width: "26%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colSpecValue: { width: "74%" },
+  colRef: { width: "34%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colType: { width: "14%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colDs: { width: "22%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colLoc: { width: "30%" },
+  colProg: { width: "42%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colRel: { width: "10%", borderRightWidth: 0.5, borderRightColor: BORDER },
+  colPath: { width: "48%" },
+  mono: { fontFamily: "Courier", fontSize: 7.5, color: MUTED },
+  small: { fontSize: 8, color: MUTED },
+  bodyBold: { fontFamily: "Helvetica-Bold", color: BLACK },
+  /* --- Plan narrative --- */
+  planObjective: { fontFamily: "Helvetica-Bold", fontSize: 10, color: BAYER_DARK, marginBottom: 4 },
+  planBody: { fontSize: 9.5, marginBottom: 8, lineHeight: 1.5 },
+  /* --- Uncertainty --- */
+  uCard: {
+    borderLeftWidth: 2,
+    borderLeftColor: BAYER_BLUE,
+    paddingLeft: 8,
     paddingVertical: 4,
     marginBottom: 5,
   },
-  uncertaintyTitle: { fontFamily: "Times-Bold", fontSize: 9.5, color: DARK },
-  uncertaintyDetail: { fontSize: 9.5, color: GREY, marginTop: 1, fontFamily: "Times-Roman" },
-  // Warnings
-  warningBlock: {
-    borderTopWidth: 0.5,
-    borderTopColor: RULE,
-    paddingTop: 8,
+  uTitle: { fontFamily: "Helvetica-Bold", fontSize: 9, color: BAYER_DARK },
+  uDetail: { fontSize: 8.5, color: MUTED, marginTop: 2 },
+  warnBox: {
     marginTop: 10,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 8,
+    backgroundColor: "#fffbeb",
   },
-  warningLabel: {
-    fontFamily: "Times-Bold",
-    fontSize: 9,
-    color: GREY,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-    marginBottom: 4,
-  },
-  warningText: { fontSize: 9.5, marginBottom: 2, color: DARK },
-  // Footer
+  warnLabel: { fontFamily: "Helvetica-Bold", fontSize: 8, color: "#92400e", marginBottom: 4 },
+  /* --- Footer --- */
   footer: {
     position: "absolute",
-    bottom: 24,
-    left: 54,
-    right: 54,
+    bottom: 22,
+    left: 44,
+    right: 44,
     borderTopWidth: 0.5,
-    borderTopColor: RULE,
+    borderTopColor: BORDER,
     paddingTop: 6,
     flexDirection: "row",
     justifyContent: "space-between",
-    fontSize: 7,
-    color: LIGHT_GREY,
-    fontFamily: "Times-Roman",
+    fontSize: 7.5,
+    color: MUTED,
   },
 })
 
-function SectionHeading({ children }: { children: string }) {
-  return (
-    <>
-      <Text style={s.sectionTitle}>{children}</Text>
-      <View style={s.rule} />
-    </>
-  )
+function shortText(text: string, max: number): string {
+  const t = text.replace(/\s+/g, " ").trim()
+  if (t.length <= max) return t
+  return `${t.slice(0, max - 1)}\u2026`
 }
 
-function FieldRow({ label, value }: { label: string; value: string | null }) {
+function SpecTableRow({ label, value }: { label: string; value: string | null }) {
   if (!value) return null
   return (
-    <View style={s.fieldRow}>
-      <Text style={s.fieldLabel}>{label}</Text>
-      <Text style={s.fieldValue}>{value}</Text>
+    <View style={s.tableRow} wrap={false}>
+      <View style={[s.tableCell, s.colSpecLabel]}>
+        <Text style={[s.tableCell, { fontFamily: "Helvetica-Bold", color: MUTED, fontSize: 8 }]}>{label}</Text>
+      </View>
+      <View style={[s.tableCell, s.colSpecValue]}>
+        <Text>{value}</Text>
+      </View>
     </View>
   )
 }
 
-function ChipRow({ items }: { items: string[] }) {
-  if (items.length === 0) return null
-  return (
-    <View style={s.chipRow}>
-      {items.map((item) => (
-        <Text key={item} style={s.chip}>
-          {item}
-        </Text>
-      ))}
-    </View>
-  )
-}
-
-function BulletList({ items }: { items: string[] }) {
-  return (
-    <View>
-      {items.map((item) => (
-        <View key={item} style={s.bulletItem}>
-          <Text style={s.bullet}>{"\u2013"}</Text>
-          <Text style={s.bulletText}>{item}</Text>
-        </View>
-      ))}
-    </View>
-  )
-}
-
-function UncertaintySection({
-  items,
-  title,
-}: {
-  items: Array<{ detail: string; title: string }>
-  title: string
-}) {
-  if (items.length === 0) return null
+function Section({ n, title, intro }: { n: number; title: string; intro?: string }) {
   return (
     <>
-      <Text style={[s.fieldLabel, { marginTop: 8, marginBottom: 4 }]}>{title}</Text>
-      {items.map((item) => (
-        <View key={item.title} style={s.uncertaintyCard}>
-          <Text style={s.uncertaintyTitle}>{item.title}</Text>
-          <Text style={s.uncertaintyDetail}>{item.detail}</Text>
-        </View>
-      ))}
+      <Text style={s.sectionNum}>
+        {n}. {title.toUpperCase()}
+      </Text>
+      {intro ? <Text style={s.sectionIntro}>{intro}</Text> : null}
     </>
   )
 }
 
 export function CopilotReport({ question, result }: CopilotReportProps) {
   const generatedAt = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC"
+  const { interpretation, responsePlan } = result
+  const ranked = responsePlan.rankedCodeAssets ?? []
 
   return (
-    <Document>
+    <Document title="Copilot response plan specification" author={PRODUCT_DISPLAY_NAME}>
       <Page size="A4" style={s.page}>
-        {/* Header */}
-        <View style={s.headerRow}>
-          {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image has no alt prop */}
-          <Image src={bayerLogoPng} style={s.logo} />
-          <View>
-            <Text style={s.headerTitle}>{PRODUCT_DISPLAY_NAME}</Text>
-            <Text style={s.headerSub}>Generated {generatedAt}</Text>
+        {/* Document control — TLF specification style */}
+        <View style={s.docHeader}>
+          <View style={s.docHeaderTop}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer Image has no alt prop */}
+            <Image src={bayerLogoPng} style={s.logo} />
+            <View style={s.docTitleBlock}>
+              <Text style={s.docTitle}>Copilot response plan specification</Text>
+              <Text style={s.docSubtitle}>{PRODUCT_DISPLAY_NAME}</Text>
+              <Text style={[s.docSubtitle, { marginBottom: 0 }]}>
+                Structured summary of interpretation, retrieved evidence, and recommended actions for internal
+                planning (not submission-ready).
+              </Text>
+            </View>
+          </View>
+          <View style={s.docMetaRow}>
+            <Text style={s.docMetaLabel}>Document date</Text>
+            <Text style={s.docMetaValue}>{generatedAt}</Text>
+          </View>
+          <View style={s.docMetaRow}>
+            <Text style={s.docMetaLabel}>Classification</Text>
+            <Text style={s.docMetaValue}>Internal use only — draft for discussion</Text>
+          </View>
+          <View style={s.docMetaRow}>
+            <Text style={s.docMetaLabel}>Evidence pool</Text>
+            <Text style={s.docMetaValue}>
+              {result.retrievalMetadata.evidencePool === "network" ? "Network share index" : "Repository index"} (
+              {result.retrievalMetadata.method})
+            </Text>
           </View>
         </View>
-        <View style={s.headerRule} />
 
-        {/* Original Question */}
-        <SectionHeading>Original Question</SectionHeading>
-        <View style={s.questionBlock}>
-          <Text style={s.questionText}>{question}</Text>
-        </View>
-
-        {/* Interpretation */}
-        <SectionHeading>Interpretation</SectionHeading>
-        <FieldRow label="Request Type" value={result.interpretation.requestType} />
-        <FieldRow
-          label="Confidence"
-          value={`${result.interpretation.confidenceScore.overall}/100 (${result.interpretation.confidenceScore.level.charAt(0).toUpperCase() + result.interpretation.confidenceScore.level.slice(1)})`}
+        <Section
+          n={1}
+          title="Original question"
+          intro="Verbatim regulatory or analysis question submitted to the copilot."
         />
-        <FieldRow label="Population" value={result.interpretation.population} />
-        <FieldRow label="Endpoint" value={result.interpretation.endpoint} />
-        <FieldRow label="Analysis Type" value={result.interpretation.analysisType} />
-        <FieldRow label="Statistical Model" value={result.interpretation.statisticalModel} />
-        <FieldRow label="Timepoints" value={result.interpretation.timepoints.join(", ")} />
-        <FieldRow label="Output Types" value={result.interpretation.outputTypes.join(", ")} />
-        <View style={s.fieldRow}>
-          <Text style={s.fieldLabel}>Datasets</Text>
-          <ChipRow items={result.interpretation.datasetHints} />
-        </View>
-        <View style={s.fieldRow}>
-          <Text style={s.fieldLabel}>Output Families</Text>
-          <ChipRow items={result.interpretation.outputFamilyHints} />
+        <View style={s.requestBox}>
+          <Text style={s.requestText}>{question}</Text>
         </View>
 
-        {/* Confidence Breakdown */}
-        <Text style={[s.fieldLabel, { marginTop: 8, marginBottom: 4 }]}>CONFIDENCE BREAKDOWN</Text>
-        <FieldRow label="Interpretation" value={`${result.interpretation.confidenceScore.interpretationScore}/100`} />
-        <FieldRow label="Relevance" value={`${result.interpretation.confidenceScore.evidenceRelevanceScore}/100`} />
-        <FieldRow label="Coverage" value={`${result.interpretation.confidenceScore.evidenceCoverageScore}/100`} />
-        {result.interpretation.confidenceScore.reasons.length > 0 && (
-          <View style={{ marginTop: 4 }}>
-            {result.interpretation.confidenceScore.reasons.map((reason) => (
-              <View key={reason} style={s.bulletItem}>
-                <Text style={s.bullet}>{"\u2013"}</Text>
-                <Text style={[s.bulletText, { fontSize: 9.5, color: GREY }]}>{reason}</Text>
+        <Section
+          n={2}
+          title="Interpretation summary"
+          intro="Machine interpretation of scope, confidence, and analysis context (validate before relying on outputs)."
+        />
+        <View style={s.table}>
+          <View style={s.tableHeaderRow}>
+            <Text style={[s.tableCellH, s.colSpecLabel]}>Item</Text>
+            <Text style={[s.tableCellH, s.colSpecValue]}>Specification</Text>
+          </View>
+          <SpecTableRow label="Request type" value={interpretation.requestType} />
+          <SpecTableRow
+            label="Confidence"
+            value={`${interpretation.confidenceScore.overall}/100 (${interpretation.confidenceScore.level})`}
+          />
+          <SpecTableRow label="Summary" value={interpretation.summary} />
+          <SpecTableRow label="Population" value={interpretation.population} />
+          <SpecTableRow label="Endpoint" value={interpretation.endpoint} />
+          <SpecTableRow label="Analysis type" value={interpretation.analysisType} />
+          <SpecTableRow label="Statistical model" value={interpretation.statisticalModel} />
+          <SpecTableRow label="Timepoints" value={interpretation.timepoints.join(", ") || "—"} />
+          <SpecTableRow label="Output types" value={interpretation.outputTypes.join(", ") || "—"} />
+          <SpecTableRow label="Datasets (hints)" value={interpretation.datasetHints.join(", ") || "—"} />
+          <SpecTableRow label="Output families (hints)" value={interpretation.outputFamilyHints.join(", ") || "—"} />
+          <SpecTableRow label="Interpretation score" value={`${interpretation.confidenceScore.interpretationScore}/100`} />
+          <SpecTableRow label="Evidence relevance" value={`${interpretation.confidenceScore.evidenceRelevanceScore}/100`} />
+          <SpecTableRow label="Evidence coverage" value={`${interpretation.confidenceScore.evidenceCoverageScore}/100`} />
+        </View>
+        {interpretation.confidenceScore.reasons.length > 0 ? (
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[s.bodyBold, { fontSize: 8, marginBottom: 4 }]}>Confidence rationale</Text>
+            {interpretation.confidenceScore.reasons.map((reason) => (
+              <Text key={reason} style={{ fontSize: 8.5, marginBottom: 2, paddingLeft: 8 }}>
+                {"\u2022"} {reason}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        <Section
+          n={3}
+          title="Retrieved evidence"
+          intro="Ranked corpus assets supporting the plan (titles, types, datasets, and locations)."
+        />
+        <View style={s.table}>
+          <View style={s.tableHeaderRow}>
+            <Text style={[s.tableCellH, s.colRef]}>Output / reference</Text>
+            <Text style={[s.tableCellH, s.colType]}>Type</Text>
+            <Text style={[s.tableCellH, s.colDs]}>Datasets</Text>
+            <Text style={[s.tableCellH, s.colLoc]}>Location</Text>
+          </View>
+          {result.evidence.map((hit) => (
+            <View key={hit.document.id} style={s.tableRow} wrap={false}>
+              <View style={[s.tableCell, s.colRef]}>
+                <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 8.5 }}>{shortText(hit.document.title, 120)}</Text>
+                <Text style={[s.small, { marginTop: 2 }]}>
+                  {shortText(hit.retrievalReason, 140)}
+                  {hit.vectorSimilarity !== null && hit.vectorSimilarity > 0
+                    ? ` (${Math.round(hit.vectorSimilarity * 100)}% semantic)`
+                    : ""}
+                </Text>
+              </View>
+              <View style={[s.tableCell, s.colType]}>
+                <Text>{hit.document.sourceType}</Text>
+              </View>
+              <View style={[s.tableCell, s.colDs]}>
+                <Text>{hit.document.datasetNames.length ? hit.document.datasetNames.join(", ") : "—"}</Text>
+              </View>
+              <View style={[s.tableCell, s.colLoc]}>
+                <Text style={s.mono}>{shortText(hit.document.path.replace(/\\/g, "/"), 96)}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <Section
+          n={4}
+          title="Recommended approach & deliverables"
+          intro="Suggested objective, narrative approach, datasets, outputs, and traceable citations."
+        />
+        <Text style={s.planObjective}>{responsePlan.objective}</Text>
+        <Text style={s.planBody}>{responsePlan.recommendedApproach}</Text>
+
+        {responsePlan.recommendedDatasets.length > 0 ? (
+          <View style={[s.table, { marginBottom: 6 }]}>
+            <View style={s.tableHeaderRow}>
+              <Text style={[s.tableCellH, { width: "100%" }]}>Recommended datasets</Text>
+            </View>
+            <View style={s.tableRow}>
+              <Text style={[s.tableCell, { width: "100%" }]}>{responsePlan.recommendedDatasets.join(", ")}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {responsePlan.candidateDatasetPaths.length > 0 ? (
+          <View style={s.table}>
+            <View style={s.tableHeaderRow}>
+              <Text style={[s.tableCellH, { width: "22%" }]}>Dataset</Text>
+              <Text style={[s.tableCellH, { width: "78%", borderLeftWidth: 0.5, borderLeftColor: BORDER }]}>
+                Candidate path(s)
+              </Text>
+            </View>
+            {responsePlan.candidateDatasetPaths.map((row, i) => (
+              <View key={`${row.dataset}-${i}`} style={s.tableRow} wrap={false}>
+                <Text style={[s.tableCell, { width: "22%", fontFamily: "Helvetica-Bold" }]}>{row.dataset}</Text>
+                <Text style={[s.tableCell, s.mono, { width: "78%", borderLeftWidth: 0.5, borderLeftColor: BORDER }]}>
+                  {shortText(row.path.replace(/\\/g, "/"), 110)}
+                </Text>
               </View>
             ))}
           </View>
-        )}
+        ) : null}
 
-        {/* Evidence */}
-        <SectionHeading>Evidence</SectionHeading>
-        {result.evidence.map((hit) => (
-          <View key={hit.document.id} style={s.evidenceCard} wrap={false}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Text style={s.evidenceTitle}>{hit.document.title}</Text>
-              <Text style={s.evidenceBadge}>{hit.document.sourceType}</Text>
+        {responsePlan.candidateOutputs.length > 0 ? (
+          <View style={{ marginBottom: 6 }}>
+            <Text style={[s.bodyBold, { fontSize: 8, marginBottom: 3 }]}>Candidate outputs to reuse</Text>
+            {responsePlan.candidateOutputs.map((o) => (
+              <Text key={o} style={{ fontSize: 8.5, marginBottom: 2, paddingLeft: 8 }}>
+                {"\u2022"} {o}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        {responsePlan.deliverables.length > 0 ? (
+          <View style={{ marginBottom: 6 }}>
+            <Text style={[s.bodyBold, { fontSize: 8, marginBottom: 3 }]}>Deliverables</Text>
+            {responsePlan.deliverables.map((d) => (
+              <Text key={d} style={{ fontSize: 8.5, marginBottom: 2, paddingLeft: 8 }}>
+                {"\u2022"} {d}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        {responsePlan.citations.length > 0 ? (
+          <View style={{ marginBottom: 8 }}>
+            <Text style={[s.bodyBold, { fontSize: 8, marginBottom: 3 }]}>Evidence citation IDs</Text>
+            <Text style={[s.mono, { fontSize: 8 }]}>{responsePlan.citations.join(", ")}</Text>
+          </View>
+        ) : null}
+
+        {ranked.length > 0 ? (
+          <>
+            <Section
+              n={5}
+              title="Supporting programs & macros"
+              intro="Highest-ranked SAS assets from this run (for programming traceability)."
+            />
+            <View style={s.table}>
+              <View style={s.tableHeaderRow}>
+                <Text style={[s.tableCellH, s.colProg]}>Program / macro</Text>
+                <Text style={[s.tableCellH, s.colRel]}>Score</Text>
+                <Text style={[s.tableCellH, s.colPath]}>Path</Text>
+              </View>
+              {ranked.slice(0, 40).map((row) => (
+                <View key={row.documentId} style={s.tableRow} wrap={false}>
+                  <View style={[s.tableCell, s.colProg]}>
+                    <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 8 }}>{row.title}</Text>
+                    <Text style={[s.small, { marginTop: 1 }]}>{row.assetType}</Text>
+                  </View>
+                  <Text style={[s.tableCell, s.colRel]}>{Math.round(row.relevancePercent)}</Text>
+                  <Text style={[s.tableCell, s.mono, s.colPath]}>{shortText(row.path.replace(/\\/g, "/"), 72)}</Text>
+                </View>
+              ))}
             </View>
-            <Text style={s.evidenceReason}>
-              {hit.retrievalReason}
-              {hit.vectorSimilarity !== null && hit.vectorSimilarity > 0 && ` (${Math.round(hit.vectorSimilarity * 100)}% semantic match)`}
-            </Text>
-            {hit.document.datasetNames.length > 0 && <ChipRow items={hit.document.datasetNames} />}
-            <Text style={s.evidencePath}>{hit.document.path}</Text>
+          </>
+        ) : null}
+
+        <Section
+          n={ranked.length > 0 ? 6 : 5}
+          title="Assumptions, open questions & evidence gaps"
+          intro="Items requiring human confirmation or additional evidence before external use."
+        />
+        {result.assumptions.map((item) => (
+          <View key={item.title} style={s.uCard} wrap={false}>
+            <Text style={s.uTitle}>{item.title}</Text>
+            <Text style={s.uDetail}>{item.detail}</Text>
+          </View>
+        ))}
+        {result.openQuestions.map((item) => (
+          <View key={item.title} style={s.uCard} wrap={false}>
+            <Text style={s.uTitle}>{item.title}</Text>
+            <Text style={s.uDetail}>{item.detail}</Text>
+          </View>
+        ))}
+        {result.evidenceGaps.map((item) => (
+          <View key={item.title} style={s.uCard} wrap={false}>
+            <Text style={s.uTitle}>{item.title}</Text>
+            <Text style={s.uDetail}>{item.detail}</Text>
           </View>
         ))}
 
-        {/* Response Plan */}
-        <SectionHeading>Response Plan</SectionHeading>
-        <Text style={{ fontFamily: "Times-Bold", fontSize: 11, marginBottom: 4, color: BLACK }}>
-          {result.responsePlan.objective}
-        </Text>
-        <Text style={{ marginBottom: 8 }}>{result.responsePlan.recommendedApproach}</Text>
-
-        {result.responsePlan.recommendedDatasets.length > 0 && (
-          <>
-            <Text style={s.fieldLabel}>Recommended Datasets</Text>
-            <ChipRow items={result.responsePlan.recommendedDatasets} />
-          </>
-        )}
-
-        {result.responsePlan.candidateOutputs.length > 0 && (
-          <>
-            <Text style={[s.fieldLabel, { marginTop: 6 }]}>Candidate Outputs</Text>
-            <BulletList items={result.responsePlan.candidateOutputs} />
-          </>
-        )}
-
-        {result.responsePlan.deliverables.length > 0 && (
-          <>
-            <Text style={[s.fieldLabel, { marginTop: 6 }]}>Deliverables</Text>
-            <BulletList items={result.responsePlan.deliverables} />
-          </>
-        )}
-
-        {result.responsePlan.citations.length > 0 && (
-          <>
-            <Text style={[s.fieldLabel, { marginTop: 6 }]}>Citations</Text>
-            <BulletList items={result.responsePlan.citations} />
-          </>
-        )}
-
-        {/* Uncertainty & Warnings */}
-        <SectionHeading>Uncertainty & Warnings</SectionHeading>
-        <UncertaintySection title="ASSUMPTIONS" items={result.assumptions} />
-        <UncertaintySection title="OPEN QUESTIONS" items={result.openQuestions} />
-        <UncertaintySection title="EVIDENCE GAPS" items={result.evidenceGaps} />
-
-        {result.warnings.length > 0 && (
-          <View style={s.warningBlock}>
-            <Text style={s.warningLabel}>Warnings</Text>
+        {result.warnings.length > 0 ? (
+          <View style={s.warnBox}>
+            <Text style={s.warnLabel}>Warnings</Text>
             {result.warnings.map((w) => (
-              <Text key={w} style={s.warningText}>
+              <Text key={w} style={{ fontSize: 8.5, marginBottom: 2 }}>
                 {"\u2013"} {w}
               </Text>
             ))}
           </View>
-        )}
+        ) : null}
 
-        {/* Footer */}
         <View style={s.footer} fixed>
-          <Text>{PRODUCT_DISPLAY_NAME} — Internal use only</Text>
+          <Text>{PRODUCT_DISPLAY_NAME} — Copilot specification | Internal use only</Text>
           <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
         </View>
       </Page>

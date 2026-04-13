@@ -1,10 +1,9 @@
 export type DemoPromptFamily =
   | "ae-summary"
   | "soc-pt"
-  | "aesi"
-  | "eair"
   | "liver-clo"
-  | "bmd-figure"
+  | "starter-plan"
+  | "eair"
 
 export type DemoPrompt = {
   id: string
@@ -15,45 +14,38 @@ export type DemoPrompt = {
 
 export const demoPrompts: DemoPrompt[] = [
   {
-    id: "ae-overall-week12",
+    id: "week12-teae-overall",
     family: "ae-summary",
-    label: "Week 12 overall AE summary",
+    label: "Week 12 TEAE overall",
     question:
-      "Provide an evidence-backed starter plan for a week 12 treatment-emergent adverse event overall summary for the safety analysis set.",
+      "For the safety analysis set, provide a treatment-emergent adverse event overall summary at Week 12. Ground the plan in ADAE and ADSL. Include SOC and preferred term detail suitable for a regulatory response.",
   },
   {
-    id: "soc-pt-week12",
+    id: "week12-soc-pt-table",
     family: "soc-pt",
-    label: "Week 12 SOC/PT safety table",
+    label: "Week 12 SOC/PT table",
     question:
-      "Interpret this as a regulatory response request and identify the best evidence for a week 12 safety table by primary system organ class and preferred term.",
+      "Prepare a Week 12 safety table for the safety analysis set: treatment-emergent adverse events by system organ class and preferred term, using ADAE (and ADSL for population flags). Reference prior TLF or SAS evidence where available.",
   },
   {
-    id: "aesi-fatigue-week12",
-    family: "aesi",
-    label: "AESI somnolence or fatigue follow-up",
-    question:
-      "Find the most relevant prior evidence and build a starter response plan for treatment-emergent adverse events of special interest focused on somnolence or fatigue up to week 12.",
-  },
-  {
-    id: "eair-week26",
-    family: "eair",
-    label: "Week 26 EAIR request",
-    question:
-      "Create a grounded response plan for a week 26 exposure-adjusted incidence rate request covering treatment-emergent adverse events by SOC and preferred term.",
-  },
-  {
-    id: "liver-clo-followup",
+    id: "liver-laboratory-followup",
     family: "liver-clo",
-    label: "Liver close observation follow-up",
+    label: "Liver / laboratory follow-up",
     question:
-      "What repo evidence should SPA review first for a subject-level close liver observation follow-up request involving laboratory trends and supporting datasets?",
+      "For the safety analysis set, outline a subject-level close liver observation follow-up: use ADLB and ADAE, focus on laboratory trends during treatment through Week 12, and cite the closest prior repo programs for figures or listings.",
   },
   {
-    id: "bmd-race-figure",
-    family: "bmd-figure",
-    label: "BMD by race figure",
+    id: "starter-response-plan-week12",
+    family: "starter-plan",
+    label: "Starter Response Plan",
     question:
-      "Draft a traceable starter plan for a box plot showing percent change in bone mineral density from baseline by race at weeks 24 and 52.",
+      "Week 12 TEAE overall summary, safety analysis set, datasets ADAE and ADSL — starter response plan with traceable repo evidence.",
+  },
+  {
+    id: "eair-week26-exposure-adjusted",
+    family: "eair",
+    label: "EAIR / exposure-adjusted",
+    question:
+      "Week 26 exposure-adjusted incidence rate (EAIR) for treatment-emergent adverse events by SOC and PT, safety analysis set, using ADAE with exposure from ADSL — identify matching SAS and dataset evidence first.",
   },
 ]

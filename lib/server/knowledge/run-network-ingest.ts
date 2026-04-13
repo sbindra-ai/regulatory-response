@@ -13,7 +13,10 @@ import {
   resolveReadableScanRoot,
 } from "@/lib/server/knowledge/normalize-network-scan-root"
 
-/** Used when `EVIDENCE_SCAN_ROOT` is unset (override via env or UI if your share differs). */
+/**
+ * Fallback when ingest is run with no CLI arg and `EVIDENCE_SCAN_ROOT` is unset.
+ * Used only by `runNetworkIngest` — not for joining paths at retrieval time (corpus stores `networkScanRoot`).
+ */
 export const DEFAULT_NETWORK_SCAN_ROOT = "\\\\by-swanPRD\\swan\\root\\bhc\\3427080"
 
 const MGA_BASE_URL = "https://chat.int.bayer.com/api/v2"

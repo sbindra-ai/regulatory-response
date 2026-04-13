@@ -9,7 +9,6 @@ import type {
 } from "@/lib/server/copilot/schemas"
 import { normalizeEvidenceHitsForNetworkShare } from "@/lib/server/copilot/network-path-resolve"
 import { getKnowledgeBase } from "@/lib/server/copilot/knowledge-base"
-import { DEFAULT_NETWORK_SCAN_ROOT } from "@/lib/server/knowledge/run-network-ingest"
 import { normalizeNetworkScanRoot } from "@/lib/server/knowledge/normalize-network-scan-root"
 import { buildQueryTerms } from "@/lib/server/copilot/query-terms"
 import { generateEmbeddings } from "@/lib/server/llm/openai"
@@ -336,9 +335,12 @@ export async function retrieveEvidence({
     hybridRank: index + 1,
   }))
 
+  // Use the root stored at network ingest, then env — never a code default (avoids fake UNC paths).
   const networkScanRootUsed =
     evidencePool === "network"
-      ? normalizeNetworkScanRoot(process.env.EVIDENCE_SCAN_ROOT?.trim() || DEFAULT_NETWORK_SCAN_ROOT) || undefined
+      ? normalizeNetworkScanRoot(
+          corpus.networkScanRoot?.trim() || process.env.EVIDENCE_SCAN_ROOT?.trim() || "",
+        ) || undefined
       : undefined
 
   if (evidencePool === "network" && networkScanRootUsed) {

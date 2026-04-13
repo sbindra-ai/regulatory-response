@@ -81,20 +81,37 @@ export function buildPlanGenerationSystemPrompt(): string {
   ].join("\n")
 }
 
+/** Max evidence rows sent to the plan LLM (full list still used for merge/ranked table). Override via COPILOT_PLAN_EVIDENCE_CAP. */
+export function planGenerationEvidenceCap(): number {
+  const raw = process.env.COPILOT_PLAN_EVIDENCE_CAP?.trim()
+  const n = raw ? Number.parseInt(raw, 10) : Number.NaN
+  if (Number.isFinite(n) && n > 0) return Math.min(n, 96)
+  return 24
+}
+
 export function buildPlanGenerationUserPrompt(
   question: string,
   interpretation: RequestInterpretation,
   evidence: EvidenceHit[],
 ): string {
+  const cap = planGenerationEvidenceCap()
+  const forPrompt = evidence.slice(0, cap)
+  const truncated = evidence.length > forPrompt.length
+  const evidenceNote = truncated
+    ? `Note: showing the top ${forPrompt.length} hits by retrieval rank (${evidence.length} total). Ground the plan in these; citations may include any retrieved id.`
+    : ""
+
   return [
     `Question: ${question}`,
     "",
     "Interpretation:",
     JSON.stringify(interpretation, null, 2),
     "",
+    evidenceNote,
+    "",
     "Evidence hits:",
     JSON.stringify(
-      evidence.map((hit) => ({
+      forPrompt.map((hit) => ({
         id: hit.document.id,
         title: hit.document.title,
         sourceType: hit.document.sourceType,

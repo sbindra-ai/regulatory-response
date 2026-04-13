@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from "react"
 
 import { fileNameFromPath, fullPathForRankedCodeRow } from "@/lib/copilot/path-display"
 import { PLAN_RANKED_CODE_MAX, PLAN_RANKED_CODE_SCORE_SPREAD } from "@/lib/copilot/ranked-code-plan"
-import type { CopilotResult, EvidenceHit } from "@/lib/server/copilot/schemas"
+import type { CopilotResult, EvidenceHit, RequestInterpretation } from "@/lib/server/copilot/schemas"
 import { Badge } from "@/components/ui/badge"
 import { FormattedText } from "@/components/copilot/formatted-text"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -58,24 +58,79 @@ function UncertaintyBlock({
   )
 }
 
+type AnalysisDatasetRow = {
+  dataset: string
+  path: string | null
+  hasTransport: boolean
+}
+
+/** ADaM-style datasets from this run: transport filenames, dataset tags on hits, then interpretation hints. */
+function buildAnalysisDatasetRows(
+  evidence: EvidenceHit[],
+  interpretation: Pick<RequestInterpretation, "datasetHints">,
+): AnalysisDatasetRow[] {
+  const byDs = new Map<string, AnalysisDatasetRow>()
+
+  for (const hit of evidence) {
+    const p = hit.document.path.replace(/\\/g, "/")
+    const isTransport = /\.(sas7bdat|xpt)$/i.test(p)
+
+    if (isTransport) {
+      const fn = fileNameFromPath(p)
+      const ds = fn.replace(/\.[^.]+$/i, "").toUpperCase()
+      if (!ds) continue
+      const cur = byDs.get(ds)
+      if (!cur) {
+        byDs.set(ds, { dataset: ds, path: hit.document.path, hasTransport: true })
+      } else {
+        cur.path = hit.document.path
+        cur.hasTransport = true
+      }
+    }
+
+    for (const raw of hit.document.datasetNames) {
+      const ds = raw.trim().toUpperCase()
+      if (!ds) continue
+      const cur = byDs.get(ds)
+      if (!cur) {
+        byDs.set(ds, {
+          dataset: ds,
+          path: hit.document.path,
+          hasTransport: isTransport,
+        })
+      } else {
+        if (isTransport) {
+          cur.path = hit.document.path
+          cur.hasTransport = true
+        } else if (!cur.path) {
+          cur.path = hit.document.path
+        }
+      }
+    }
+  }
+
+  if (byDs.size === 0) {
+    for (const raw of interpretation.datasetHints) {
+      const ds = raw.trim().toUpperCase()
+      if (!ds) continue
+      byDs.set(ds, { dataset: ds, path: null, hasTransport: false })
+    }
+  }
+
+  return [...byDs.values()].sort((a, b) => a.dataset.localeCompare(b.dataset))
+}
+
 function pathBuckets(evidence: EvidenceHit[]) {
-  const transport: string[] = []
   const sas: string[] = []
-  const seenT = new Set<string>()
   const seenS = new Set<string>()
   for (const hit of evidence) {
     const p = hit.document.path.replace(/\\/g, "/")
-    if (/\.(sas7bdat|xpt)$/i.test(p) && !seenT.has(p)) {
-      seenT.add(p)
-      transport.push(p)
-    }
     if (/\.sas$/i.test(p) && !seenS.has(p)) {
       seenS.add(p)
       sas.push(p)
     }
   }
   return {
-    transport: transport.sort(),
     sas: sas.sort(),
   }
 }
@@ -93,7 +148,11 @@ function findSourceText(assetDocumentId: string, evidence: EvidenceHit[]): strin
 export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
   const [openCodeId, setOpenCodeId] = useState<string | null>(null)
 
-  const buckets = useMemo(() => (result ? pathBuckets(result.evidence) : { transport: [], sas: [] }), [result])
+  const buckets = useMemo(() => (result ? pathBuckets(result.evidence) : { sas: [] }), [result])
+  const analysisDatasetRows = useMemo(
+    () => (result ? buildAnalysisDatasetRows(result.evidence, result.interpretation) : []),
+    [result],
+  )
 
   if (pending) {
     return (
@@ -165,23 +224,31 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
             </div>
             <div className="rounded-lg border border-border/70 bg-card p-3">
               <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                Analysis data set (transport in hits)
+                Analysis datasets
+                <HelpIcon tooltip="Lists ADaM-style datasets for this run: (1) names from .sas7bdat/.xpt paths in hits, (2) dataset tags on retrieved documents (programs, Define-XML slices, PDF chunks), and (3) if still empty, dataset hints from interpretation. The demo corpus often has no transport binaries — tags still show ADSL, ADAE, etc." />
               </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[#10384F]">{buckets.transport.length}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-[#10384F]">{analysisDatasetRows.length}</p>
               <div className="mt-2 max-h-36 space-y-2 overflow-auto rounded border border-border/40 bg-muted/30 p-2 text-[0.65rem] leading-snug">
-                {buckets.transport.length === 0 ? (
-                  <span className="text-muted-foreground/70">None in hits (add .sas7bdat/.xpt via ingest)</span>
+                {analysisDatasetRows.length === 0 ? (
+                  <span className="text-muted-foreground/70">No datasets inferred for this run.</span>
                 ) : (
-                  buckets.transport.slice(0, 80).map((p) => {
-                    const fn = fileNameFromPath(p)
-                    const ds = fn.replace(/\.[^.]+$/i, "").toUpperCase()
-                    return (
-                      <div key={p} className="border-b border-border/25 pb-2 last:border-0 last:pb-0">
-                        <span className="font-semibold text-foreground">{ds}</span>
-                        <div className="font-mono text-muted-foreground break-all">{p}</div>
+                  analysisDatasetRows.slice(0, 80).map((row) => (
+                    <div key={row.dataset} className="border-b border-border/25 pb-2 last:border-0 last:pb-0">
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <span className="font-semibold text-foreground">{row.dataset}</span>
+                        {row.hasTransport ? (
+                          <span className="text-[0.6rem] font-medium uppercase tracking-wide text-emerald-700/90">
+                            transport
+                          </span>
+                        ) : null}
                       </div>
-                    )
-                  })
+                      {row.path ? (
+                        <div className="font-mono text-muted-foreground break-all">{row.path}</div>
+                      ) : (
+                        <div className="text-muted-foreground/80">From interpreted question — ingest or retrieve evidence that tags this dataset.</div>
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
             </div>
@@ -284,7 +351,10 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
                     <p className="text-sm font-bold text-foreground">{ds}</p>
                     {paths.length === 0 ? (
                       <p className="mt-1 text-[0.8125rem] text-muted-foreground">
-                        No matching paths in evidence hits — try network ingest or a more specific question.
+                        No indexed path matched this run&apos;s evidence for {ds} (transport files or dataset-tagged
+                        chunks). Re-ingest, switch pool, or broaden the question so hits include {ds} or a{" "}
+                        <span className="font-mono text-foreground/80">.sas7bdat</span> /{" "}
+                        <span className="font-mono text-foreground/80">.xpt</span> path.
                       </p>
                     ) : (
                       <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto font-mono text-[0.6875rem] leading-snug text-muted-foreground">
@@ -315,10 +385,12 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
           </div>
           <p className="mt-3 text-[0.75rem] leading-snug text-muted-foreground">
             The table below lists the strongest SAS matches for this question: up to {PLAN_RANKED_CODE_MAX} rows, within{" "}
-            {PLAN_RANKED_CODE_SCORE_SPREAD} relevance points of the top hit. If the full path column still shows only{" "}
-            <span className="font-mono text-foreground/80">pgms/…</span>, set{" "}
-            <span className="font-medium text-foreground">EVIDENCE_SCAN_ROOT</span> to the same folder you used for
-            network ingest (or rebuild the index so each document stores an absolute path), then re-run the copilot.
+            {PLAN_RANKED_CODE_SCORE_SPREAD} relevance points of the top hit.             If the full path column still shows only{" "}
+            <span className="font-mono text-foreground/80">pgms/…</span>, run{" "}
+            <span className="font-medium text-foreground">Rebuild network index</span> so the corpus stores{" "}
+            <span className="font-mono text-foreground/80">networkScanRoot</span>, or set{" "}
+            <span className="font-medium text-foreground">EVIDENCE_SCAN_ROOT</span> to that same folder, then re-run the
+            copilot.
           </p>
         </div>
       </div>
@@ -326,7 +398,7 @@ export function ResponsePlanPanel({ pending, result }: ResponsePlanPanelProps) {
       {/* Programs / macros table */}
       <Separator />
       <div>
-        <SectionHeading tooltip={`Shows up to ${PLAN_RANKED_CODE_MAX} program/macro rows closest to your question: only hits within ${PLAN_RANKED_CODE_SCORE_SPREAD} relevance points of the best score. Macros are split per %macro in the same source file.`}>
+        <SectionHeading tooltip={`Up to ${PLAN_RANKED_CODE_MAX} SAS rows closest to your question (by retrieval score). Rows within ~${PLAN_RANKED_CODE_SCORE_SPREAD} points of the top hit are shown first; the list widens if there are fewer than six strong matches so nearby programs still appear. Macros are one row per %macro in the source file.`}>
           Most likely programs / macros for this question
         </SectionHeading>
         {rankedCodeAssets.length === 0 ? (

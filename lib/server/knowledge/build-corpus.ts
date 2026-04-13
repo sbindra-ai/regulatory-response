@@ -19,6 +19,8 @@ export type EvidenceCorpus = {
 
 export type BuildCorpusInput = {
   defineXml: string
+  /** Path stored on dataset metadata documents (matches Define-XML file location in the repo). */
+  defineDatasetDocumentPath?: string
   embeddings?: Map<string, number[]>
   embeddingModel?: string | null
   embeddingDimensions?: number | null
@@ -175,6 +177,7 @@ function buildBriefDocument(brief: ReadmeBrief): EvidenceDocument {
 
 export function buildCorpus({
   defineXml,
+  defineDatasetDocumentPath = "docs/examples/define.xml",
   embeddings,
   embeddingModel = null,
   embeddingDimensions = null,
@@ -189,7 +192,7 @@ export function buildCorpus({
   const programs = parseSasPrograms(orderedProgramSources)
   const documents = [
     buildBriefDocument(brief),
-    ...buildDatasetDocuments(datasets),
+    ...buildDatasetDocuments(datasets, defineDatasetDocumentPath),
     ...buildProgramDocuments(programs),
     ...buildPdfDocuments(pdfChunks),
   ]

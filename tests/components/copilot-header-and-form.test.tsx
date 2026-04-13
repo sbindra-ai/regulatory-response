@@ -28,7 +28,7 @@ describe("header", () => {
         <div className="flex flex-wrap items-center gap-4">
           <span className="trust-item">Grounded in repo evidence</span>
           <span className="trust-item">Server-side reasoning</span>
-          <span className="trust-item">Corpus: README + Define-XML + 10 SAS examples</span>
+          <span className="trust-item">Corpus: README + Define-XML + programs/ and macros/</span>
         </div>
       </header>,
     )
@@ -48,7 +48,7 @@ describe("header", () => {
     renderHeader()
     expect(screen.getByText("Grounded in repo evidence")).toBeInTheDocument()
     expect(screen.getByText("Server-side reasoning")).toBeInTheDocument()
-    expect(screen.getByText("Corpus: README + Define-XML + 10 SAS examples")).toBeInTheDocument()
+    expect(screen.getByText("Corpus: README + Define-XML + programs/ and macros/")).toBeInTheDocument()
   })
 })
 
@@ -86,12 +86,11 @@ describe("question form", () => {
     expect(screen.getByRole("button", { name: "Run Copilot" })).toBeInTheDocument()
   })
 
-  it("renders all 6 demo prompt chips", () => {
+  it("renders all demo prompt chips", () => {
     render(<QuestionForm {...defaultProps} />)
     for (const prompt of demoPrompts) {
       expect(screen.getByText(prompt.label)).toBeInTheDocument()
     }
-    // Verify exactly 6
-    expect(demoPrompts).toHaveLength(6)
+    expect(demoPrompts).toHaveLength(5)
   })
 })

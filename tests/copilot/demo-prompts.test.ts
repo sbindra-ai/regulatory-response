@@ -5,12 +5,11 @@ import { demoPrompts } from "@/lib/copilot/demo-prompts"
 describe("demoPrompts", () => {
   it("covers the supported MVP request families", () => {
     expect(demoPrompts.map((prompt) => prompt.id)).toEqual([
-      "ae-overall-week12",
-      "soc-pt-week12",
-      "aesi-fatigue-week12",
-      "eair-week26",
-      "liver-clo-followup",
-      "bmd-race-figure",
+      "week12-teae-overall",
+      "week12-soc-pt-table",
+      "liver-laboratory-followup",
+      "starter-response-plan-week12",
+      "eair-week26-exposure-adjusted",
     ])
   })
 

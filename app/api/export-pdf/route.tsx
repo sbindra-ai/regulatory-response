@@ -35,7 +35,7 @@ export async function POST(request: Request): Promise<Response> {
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="copilot-report.pdf"',
+        "Content-Disposition": 'attachment; filename="copilot-response-plan-specification.pdf"',
       },
     })
   } catch (error) {
